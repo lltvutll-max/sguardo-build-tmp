@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>ru</string>
+		<string>en</string>
+		<string>de</string>
+		<string>fr</string>
+		<string>es</string>
+		<string>pt</string>
+		<string>it</string>
+		<string>pl</string>
+	</array>
+	<key>CFBundleDisplayName</key>
+	<string>Sguardo</string>
+	<key>CFBundleName</key>
+	<string>Sguardo</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>UIRequiresFullScreen</key>
+	<true/>
+	<key>UIUserInterfaceStyle</key>
+	<string>Dark</string>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleLightContent</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+	</dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Микрофон нужен, чтобы записывать голосовые и кружки клиентам.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Камера нужна, чтобы записывать кружки для Telegram.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Чтобы сохранять фото и видео из переписки в «Фото».</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Face ID защищает вход в кабинет Sguardo на этом телефоне.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Unbounded-500.ttf</string>
+		<string>Unbounded-600.ttf</string>
+		<string>Unbounded-700.ttf</string>
+		<string>Onest-400.ttf</string>
+		<string>Onest-500.ttf</string>
+		<string>Onest-600.ttf</string>
+		<string>Onest-700.ttf</string>
+	</array>
+</dict>
+</plist>

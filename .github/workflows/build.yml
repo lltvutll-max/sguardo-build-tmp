@@ -1,0 +1,302 @@
+# CI (lltvutll-max)
+# Сборка Sguardo для iPhone: компиляция → снимки всех экранов в симуляторе (без падений и белых экранов)
+# → подпись (ручная: p12 + профиль App Store) → загрузка в App Store Connect (TestFlight).
+# Минуты macOS дорогие: один прогон делает всё сразу, снимки уходят в ветку shots/<номер>.
+name: Build
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md", "tools/**"]
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: "Загрузить в App Store Connect"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build
+  cancel-in-progress: true
+
+jobs:
+  screenshots:
+    runs-on: macos-15
+    timeout-minutes: 40
+    permissions:
+      contents: write
+    env:
+      SCHEME: Sguardo
+      BUNDLE_ID: dev.disify.batch
+      PROFILE_NAME: Fewls AppStore
+      # номер сборки выше уже загруженных в эту запись App Store Connect (у Fewls была 6)
+      BUILD_BASE: "10"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Инструменты
+        run: |
+          xcodebuild -version
+          brew install xcodegen >/dev/null 2>&1 || brew install xcodegen
+          echo "BUILD_NUMBER=$((BUILD_BASE + GITHUB_RUN_NUMBER))" >> $GITHUB_ENV
+
+      - name: Сборка для симулятора
+        run: |
+          set -o pipefail
+          xcodegen generate
+          xcodebuild build -project "$SCHEME.xcodeproj" -scheme "$SCHEME" -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build/dd \
+            CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CURRENT_PROJECT_VERSION="$BUILD_NUMBER" > build-sim.log 2>&1 || {
+              grep -E "error:|Error:" build-sim.log | sort -u | head -80; tail -30 build-sim.log; exit 1; }
+          grep -E "warning:" build-sim.log | sort -u | head -30 || true
+          ls build/dd/Build/Products/Debug-iphonesimulator/
+
+      - name: Симулятор
+        id: sim
+        timeout-minutes: 7
+        run: |
+          set -e
+          LIST=$(xcrun simctl list devices available)
+          UDID=$(echo "$LIST" | grep -E "^ +iPhone 17 Pro \(" | head -1 | sed -E 's/.*\(([0-9A-Fa-f-]{36})\).*/\1/')
+          [ -n "$UDID" ] || UDID=$(echo "$LIST" | grep -E "^ +iPhone .*\(" | tail -1 | sed -E 's/.*\(([0-9A-Fa-f-]{36})\).*/\1/')
+          echo "$LIST" | grep "$UDID"
+          echo "udid=$UDID" >> $GITHUB_OUTPUT
+          xcrun simctl boot "$UDID" || true
+          for i in $(seq 1 60); do
+            xcrun simctl list devices | grep "$UDID" | grep -q Booted && break; sleep 3
+          done
+          if ! perl -e 'alarm shift; exec @ARGV' 180 xcrun simctl bootstatus "$UDID" -b; then
+            xcrun simctl shutdown "$UDID" || true
+            xcrun simctl boot "$UDID"
+            perl -e 'alarm shift; exec @ARGV' 180 xcrun simctl bootstatus "$UDID" -b
+          fi
+          xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3 || true
+          xcrun simctl install "$UDID" build/dd/Build/Products/Debug-iphonesimulator/$SCHEME.app
+
+      - name: Снимки экранов
+        id: screens
+        timeout-minutes: 25
+        run: |
+          UDID=${{ steps.sim.outputs.udid }}
+          mkdir -p shots
+          FAIL=0
+          to() { perl -e 'alarm shift; exec @ARGV' "$@"; }   # на macOS нет timeout
+          shoot() { # имя, аргументы запуска
+            local name="$1"; shift
+            local t0=$(date +%s)
+            local launch_timeout=45
+            if [ "$name" = 00-live-login ]; then launch_timeout=60; fi
+            if to "$launch_timeout" xcrun simctl launch --terminate-running-process "$UDID" "$BUNDLE_ID" "$@"; then
+              for i in $(seq 1 10); do
+                if to 5 xcrun simctl spawn "$UDID" launchctl list 2>/dev/null | grep -F "UIKitApplication:$BUNDLE_ID" >/dev/null; then
+                  break
+                fi
+                sleep 1
+              done
+              sleep 4
+            fi
+            if to 5 xcrun simctl spawn "$UDID" launchctl list 2>/dev/null | grep -F "UIKitApplication:$BUNDLE_ID" >/dev/null &&
+              to 15 xcrun simctl io "$UDID" screenshot "shots/$name.png" >/dev/null 2>&1; then
+              echo "ok   $name ($(( $(date +%s) - t0 )) с)"
+            else
+              to 15 xcrun simctl io "$UDID" screenshot "shots/$name-CRASH.png" >/dev/null 2>&1 || true
+              echo "FAIL $name — приложение не работает (упало)"; FAIL=1
+            fi
+          }
+          # живой запуск без данных: настоящий сервер отвечает 401 → экран входа
+          shoot 00-live-login
+          shoot 01-login -fixture -login
+          shoot 02-code -fixture -screen code
+          shoot 03-chats -fixture
+          shoot 04-chat -fixture -screen chat
+          shoot 05-client -fixture -screen client
+          shoot 06-today -fixture -screen today
+          shoot 07-summary -fixture -screen summary
+          shoot 08-profile -fixture -screen profile
+          shoot 09-folders -fixture -screen folders
+          shoot 10-outreach -fixture -screen outreach
+          shoot 11-partners -fixture -screen partners
+          shoot 12-lake -fixture -wall lake
+          shoot 13-night -fixture -wall night -screen today
+          shoot 14-chat-tg -fixture -screen chat-tg
+          shoot 15-chat-reply -fixture -screen chat-reply
+          shoot 16-chat-voice -fixture -screen chat-voice
+          shoot 17-chat-preview -fixture -screen chat-preview
+          shoot 18-viewer -fixture -screen viewer
+          shoot 19-note -fixture -screen note
+          shoot 20-toast -fixture -screen client -toast
+          shoot 21-chats-folder -fixture -screen chats-folder
+          shoot 22-chats-select -fixture -screen chats-select
+          shoot 23-chats-batch-folder -fixture -screen chats-folder-sheet
+          shoot 24-chat-tr -fixture -screen chat-tr
+          shoot 25-chat-tr-sheet -fixture -screen chat-tr-sheet
+          shoot 26-profile-bottom -fixture -screen profile -bottom
+          shoot 27-chat-transcript -fixture -screen chat-tg -transcript
+          shoot 28-note-lock -fixture -screen note-lock
+          shoot 29-chat-voice-rec -fixture -screen chat-voice-rec
+          shoot 30-chat-notes -fixture -screen chat-tg -scrollto m0_5 -noteplay
+          shoot 31-chat-voice-play -fixture -screen chat-tg -scrollto m0_2 -voiceplay
+          # обучение, подсказки, свайпы, пустой экран, настройки, крупный шрифт, светлая тема, нет сети (снимки 40–49)
+          shoot 40-onboarding -fixture -onboard
+          shoot 41-coach-swipe-right -fixture -coach chats1
+          shoot 42-coach-swipe-left -fixture -coach chats2
+          shoot 43-chats-empty -fixture -screen chats-empty
+          shoot 44-profile-settings -fixture -screen profile -bottom
+          shoot 45-chats-large-font -fixture -dynamic
+          shoot 46-chat-coach -fixture -screen chat -coach chat
+          shoot 47-chats-light -fixture -theme light
+          shoot 48-profile-light -fixture -theme light -screen profile
+          shoot 49-chats-offline -fixture -offline
+          shoot 50-chat-down -fixture -screen chat-down -scrollto m0_1
+          shoot 51-chat-unread -fixture -screen chat-unread
+          shoot 52-chat-menu -fixture -screen chat-menu
+          shoot 53-chat-select -fixture -screen chat-select
+          shoot 54-chat-failed -fixture -screen chat-failed
+          shoot 55-chat-wave -fixture -screen chat-tg -scrollto m0_2
+          shoot 56-chat-forward -fixture -screen chat-forward
+          # рассылки: список (оба источника), настройки, подтверждение очистки, плашка WhatsApp (снимки 60–63)
+          shoot 60-outreach-list -fixture -screen outreach-all
+          shoot 61-outreach-settings -fixture -screen outreach-settings
+          shoot 62-outreach-clear -fixture -screen outreach-clear
+          shoot 63-outreach-wa -fixture -screen outreach-wa
+          # языки интерфейса (снимки 64–65): список чатов на английском, профиль на немецком
+          shoot 64-chats-en -fixture -AppleLanguages "(en)" -AppleLocale en_US
+          shoot 65-profile-de -fixture -screen profile -AppleLanguages "(de)" -AppleLocale de_DE
+          # удаление аккаунта (снимок 66); поддержка/конфиденциальность видны на 26-profile-bottom
+          shoot 66-delete-owner -fixture -screen profile-delete
+          # белый/пустой экран сжимается в крошечный PNG — такие снимки помечаем
+          for f in shots/*.png; do
+            SZ=$(stat -f%z "$f")
+            if [ "$SZ" -lt 40000 ]; then echo "ПУСТОЙ ЭКРАН? $f ($SZ байт)"; FAIL=1; fi
+          done
+          mkdir -p shots/crashes
+          find "$HOME/Library/Logs/DiagnosticReports" -name "Sguardo*" -newermt "-1 hour" -exec cp {} shots/crashes/ \; 2>/dev/null || true
+          for c in shots/crashes/*; do [ -f "$c" ] && { echo "=== $c"; head -80 "$c"; }; done
+          ls -la shots
+          exit $FAIL
+
+      - name: Снимки в ветку
+        if: always() && !cancelled()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -d shots ] || exit 0
+          cd shots
+          git init -q -b shots
+          git add .
+          git -c user.name=ci -c user.email=ci@disify.dev commit -qm "снимки прогона $GITHUB_RUN_NUMBER"
+          git push -q -f "https://x-access-token:$GH_TOKEN@github.com/$GITHUB_REPOSITORY.git" shots:shots/$GITHUB_RUN_NUMBER
+
+  build:
+    needs: screenshots
+    runs-on: macos-15
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      SCHEME: Sguardo
+      BUNDLE_ID: dev.disify.batch
+      PROFILE_NAME: Fewls AppStore
+      # номер сборки выше уже загруженных в эту запись App Store Connect (у Fewls была 6)
+      BUILD_BASE: "10"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Инструменты
+        run: |
+          xcodebuild -version
+          brew install xcodegen >/dev/null 2>&1 || brew install xcodegen
+          echo "BUILD_NUMBER=$((BUILD_BASE + GITHUB_RUN_NUMBER))" >> $GITHUB_ENV
+
+      - name: Подпись
+        env:
+          DIST_P12: ${{ secrets.DIST_P12 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          PROFILES_TGZ: ${{ secrets.PROFILES_TGZ }}
+        run: |
+          set -e
+          KC="$RUNNER_TEMP/sign.keychain-db"; KP=$(uuidgen)
+          security create-keychain -p "$KP" "$KC"
+          security set-keychain-settings -lut 3600 "$KC"
+          security unlock-keychain -p "$KP" "$KC"
+          echo "$DIST_P12" | base64 --decode > "$RUNNER_TEMP/dist.p12"
+          security import "$RUNNER_TEMP/dist.p12" -k "$KC" -P "$P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KP" "$KC" >/dev/null
+          security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+          security find-identity -v -p codesigning "$KC"
+          for D in "$HOME/Library/MobileDevice/Provisioning Profiles" "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"; do
+            mkdir -p "$D"; echo "$PROFILES_TGZ" | base64 --decode | tar xz -C "$D"
+          done
+          ls "$HOME/Library/MobileDevice/Provisioning Profiles"
+
+      - name: Архив
+        env:
+          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
+        run: |
+          set -o pipefail
+          ruby -ryaml -e '
+            y = YAML.load_file("project.yml")
+            b = y["targets"][ENV["SCHEME"]]["settings"]["base"]
+            b["CODE_SIGN_STYLE"] = "Manual"
+            b["CODE_SIGN_IDENTITY"] = "Apple Distribution"
+            b["PROVISIONING_PROFILE_SPECIFIER"] = ENV["PROFILE_NAME"]
+            File.write("project.yml", y.to_yaml)'
+          xcodegen generate
+          xcodebuild archive -project "$SCHEME.xcodeproj" -scheme "$SCHEME" -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath "build/$SCHEME.xcarchive" \
+            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" CURRENT_PROJECT_VERSION="$BUILD_NUMBER" > build-archive.log 2>&1 || {
+              grep -E "error:|Error:" build-archive.log | sort -u | head -60; tail -40 build-archive.log; exit 1; }
+          echo "архив собран, сборка $BUILD_NUMBER"
+
+      - name: Экспорт .ipa
+        env:
+          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
+        run: |
+          set -o pipefail
+          cat > build/ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+          <key>method</key><string>app-store-connect</string>
+          <key>teamID</key><string>$DEVELOPMENT_TEAM</string>
+          <key>signingStyle</key><string>manual</string>
+          <key>signingCertificate</key><string>Apple Distribution</string>
+          <key>uploadSymbols</key><true/>
+          <key>manageAppVersionAndBuildNumber</key><false/>
+          <key>provisioningProfiles</key><dict><key>$BUNDLE_ID</key><string>$PROFILE_NAME</string></dict>
+          </dict></plist>
+          EOF
+          xcodebuild -exportArchive -archivePath "build/$SCHEME.xcarchive" -exportOptionsPlist build/ExportOptions.plist \
+            -exportPath build/export 2>&1 | tail -20
+          ls -la build/export
+          cd build/export && unzip -q -o *.ipa && codesign -d --entitlements - --xml Payload/*.app 2>/dev/null | plutil -p - || true
+          /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" Payload/*.app/Info.plist
+
+      - name: Загрузка в App Store Connect
+        if: github.event_name == 'push' || inputs.upload
+        env:
+          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -o pipefail
+          umask 077
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          echo "$ASC_KEY_CONTENT" | base64 --decode > "$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8"
+          xcrun altool --upload-app -f build/export/*.ipa -t ios \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID" --show-progress 2>&1 | tail -25

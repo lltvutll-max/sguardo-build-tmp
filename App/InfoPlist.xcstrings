@@ -1,0 +1,218 @@
+{
+  "sourceLanguage" : "ru",
+  "strings" : {
+    "NSCameraUsageDescription" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sguardo braucht die Kamera, um Videonotizen für Telegram aufzunehmen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sguardo needs the camera to record video notes for Telegram."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sguardo necesita la cámara para grabar videomensajes para Telegram."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sguardo a besoin de la caméra pour enregistrer des vidéos rondes pour Telegram."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sguardo usa la fotocamera per registrare videomessaggi per Telegram."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sguardo potrzebuje aparatu, aby nagrywać wideo w kółku do Telegrama."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Sguardo precisa da câmera para gravar vídeos curtos para o Telegram."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Камера нужна, чтобы записывать кружки для Telegram."
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "NSFaceIDUsageDescription" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID schützt den Zugang zu Ihrem Sguardo-Konto auf diesem Telefon."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID protects access to your Sguardo account on this phone."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID protege el acceso a tu cuenta de Sguardo en este teléfono."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID protège l’accès à votre espace Sguardo sur ce téléphone."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID protegge l’accesso al tuo account Sguardo su questo telefono."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID chroni dostęp do Twojego panelu Sguardo na tym telefonie."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Face ID protege o acesso à sua conta do Sguardo neste telefone."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID защищает вход в кабинет Sguardo на этом телефоне."
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "NSMicrophoneUsageDescription" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sguardo braucht das Mikrofon, um Sprachnachrichten und Videonotizen für Ihre Kunden aufzunehmen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sguardo needs the microphone to record voice messages and video notes for your clients."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sguardo necesita el micrófono para grabar audios y videomensajes para tus clientes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sguardo a besoin du micro pour enregistrer des messages vocaux et des vidéos rondes pour vos clients."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sguardo usa il microfono per registrare vocali e videomessaggi per i tuoi clienti."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sguardo potrzebuje mikrofonu, aby nagrywać wiadomości głosowe i wideo w kółku dla klientów."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Sguardo precisa do microfone para gravar mensagens de voz e vídeos curtos para seus clientes."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Микрофон нужен, чтобы записывать голосовые и кружки клиентам."
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "NSPhotoLibraryAddUsageDescription" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Damit Sie Fotos und Videos aus Chats in „Fotos“ speichern können."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To save photos and videos from your chats to Photos."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para guardar fotos y vídeos de tus chats en Fotos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour enregistrer les photos et vidéos de vos conversations dans Photos."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per salvare foto e video delle chat in Foto."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aby zapisywać zdjęcia i filmy z czatów w aplikacji Zdjęcia."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para salvar fotos e vídeos das conversas no app Fotos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чтобы сохранять фото и видео из переписки в «Фото»."
+          }
+        }
+      },
+      "extractionState" : "manual"
+    }
+  },
+  "version" : "1.0"
+}
