@@ -816,12 +816,16 @@ struct OutreachSettingsSheet: View {
                 }
                 .pickerStyle(.menu)
                 .tint(Pal.fg)
+                .fixedSize()
+                .layoutPriority(1)
                 Text("до").font(Typo.body(16)).foregroundStyle(Pal.fg2)
                 Picker(String(localized: "Конец"), selection: $st.endHour) {
                     ForEach(endHours, id: \.self) { (h: Int) in Text(OutreachFormat.hour(h)).tag(h) }
                 }
                 .pickerStyle(.menu)
                 .tint(Pal.fg)
+                .fixedSize()
+                .layoutPriority(1)
                 Spacer(minLength: 0)
             }
             .frame(minHeight: 44)
