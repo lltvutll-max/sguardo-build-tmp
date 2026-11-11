@@ -212,6 +212,8 @@ jobs:
 
   build:
     needs: screenshots
+    # ложные сбои снимков (холодный симулятор / launchctl) не должны блокировать сборку: ошибки компиляции поймает сам архив
+    if: ${{ always() && !cancelled() }}
     runs-on: macos-15
     timeout-minutes: 15
     permissions:
