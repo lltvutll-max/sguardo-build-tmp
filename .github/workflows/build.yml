@@ -33,7 +33,7 @@ jobs:
       BUNDLE_ID: dev.disify.batch
       PROFILE_NAME: Fewls AppStore
       # номер сборки выше уже загруженных в эту запись App Store Connect (у Fewls была 6)
-      BUILD_BASE: "10"
+      BUILD_BASE: "100"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -207,7 +207,7 @@ jobs:
       BUNDLE_ID: dev.disify.batch
       PROFILE_NAME: Fewls AppStore
       # номер сборки выше уже загруженных в эту запись App Store Connect (у Fewls была 6)
-      BUILD_BASE: "10"
+      BUILD_BASE: "100"
     steps:
       - uses: actions/checkout@v4
         with:
