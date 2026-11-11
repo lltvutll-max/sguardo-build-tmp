@@ -129,6 +129,11 @@ struct ChatView: View {
     @State private var holdTask: Task<Void, Never>?
     @State private var dragX: CGFloat = 0
     @State private var dragY: CGFloat = 0
+    /// удержание прошло порог — кнопка уже растёт под пальцем, пока микрофон/камера поднимаются
+    @State private var holdLive = false
+    /// отмена записи: на месте «+» коротко мелькает корзина
+    @State private var trashFlash = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var highlight: String?
     /// высота панели ввода (с ответом/подсказкой) — нижний отступ ленты, чтобы последнее сообщение не пряталось под ней
     @State private var bottomH: CGFloat = 0
@@ -147,6 +152,7 @@ struct ChatView: View {
         ZStack {
             if let conv, let contact {
                 messagesView(conv)
+                noteDim
                 noteOverlay
                 VStack(spacing: 0) {
                     if selecting {
@@ -198,8 +204,11 @@ struct ChatView: View {
         }
         .onDisappear {
             store.drafts[convId] = draft
+            holdTask?.cancel()
+            holdTask = nil
             if recorder.isActive { recorder.cancel() }
             if notePhase != .idle { closeNote() }
+            cam.shutdown()
         }
         .task(id: lastIncomingId) {
             // при открытии и при каждом новом входящем: история (не чаще раза в минуту) и перевод нового
@@ -246,6 +255,10 @@ struct ChatView: View {
         .onChange(of: cam.ready) { _, ready in
             // камера включилась, а кнопку всё ещё держат (или замок) — начинаем запись
             if ready, notePhase == .recording || notePhase == .locked, !cam.recording { cam.record() }
+        }
+        .onChange(of: videoMode) { _, on in
+            // режим кружка: заранее спрашиваем доступ и собираем сессию камеры — удержание стартует без задержки
+            if on, !store.fixture, store.conversation(convId)?.network == "telegram" { cam.warmUp() }
         }
         .onChange(of: cam.outputURL) { _, url in
             if let url { noteRecorded(url) }
@@ -1026,20 +1039,69 @@ struct ChatView: View {
             HStack(alignment: .bottom, spacing: 8) {
                 switch recPhase {
                 case .idle:
-                    CircleButton(system: "plus", iconSize: 20) { sheet = .attach }
-                    textField
+                    idleLeft.transition(.opacity)
                 case .recording:
-                    recordingBar
+                    recordingBar.transition(barTransition)
                 case .locked:
-                    lockedBar
+                    lockedBar.transition(.opacity)
                 case .preview:
-                    previewBar
+                    previewBar.transition(.opacity)
                 }
                 mainButton(conv, hasText: hasText, canNote: canNote)
             }
             if recPhase == .recording {
-                lockHint.offset(x: 0, y: -62)
+                lockHint
+                    .offset(x: 0, y: -62)
+                    .transition(lockTransition)
             }
+        }
+        .animation(recSpring, value: recPhase)
+    }
+
+    /// Пружина всех переходов записи; при «Уменьшить движение» — короткое затухание.
+    private var recSpring: Animation {
+        reduceMotion ? .easeInOut(duration: 0.18) : .spring(response: 0.34, dampingFraction: 0.8)
+    }
+
+    /// Полоса записи выезжает от кнопки, уходит, бледнея влево (как в Telegram).
+    private var barTransition: AnyTransition {
+        if reduceMotion { return .opacity }
+        let insertion: AnyTransition = .offset(x: 60).combined(with: .opacity)
+        let removal: AnyTransition = .offset(x: -40).combined(with: .opacity)
+        return .asymmetric(insertion: insertion, removal: removal)
+    }
+
+    private var lockTransition: AnyTransition {
+        if reduceMotion { return .opacity }
+        return .offset(y: 24).combined(with: .opacity).combined(with: .scale(scale: 0.6, anchor: .bottom))
+    }
+
+    @ViewBuilder private var idleLeft: some View {
+        HStack(alignment: .bottom, spacing: 8) {
+            if trashFlash {
+                trashBadge.transition(reduceMotion ? .opacity : .scale(scale: 0.4).combined(with: .opacity))
+            } else {
+                CircleButton(system: "plus", iconSize: 20) { sheet = .attach }
+                    .transition(.opacity)
+            }
+            textField
+        }
+    }
+
+    private var trashBadge: some View {
+        Image(systemName: "trash.fill")
+            .font(.system(size: 19, weight: .semibold))
+            .foregroundStyle(Pal.danger)
+            .frame(width: 44, height: 44)
+            .symbolEffect(.bounce, value: trashFlash)
+            .accessibilityHidden(true)
+    }
+
+    /// Отмена записи: короткая корзина вместо «+» и плавный возврат поля ввода.
+    private func flashTrash() {
+        withAnimation(recSpring) { trashFlash = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+            withAnimation(recSpring) { trashFlash = false }
         }
     }
 
@@ -1062,33 +1124,44 @@ struct ChatView: View {
 
     private var recordingBar: some View {
         let cancelProgress: Double = Double(min(1, max(0, -dragX / 110)))
+        let blinkStep: Int = Int(recElapsed * 2)
         return HStack(spacing: 10) {
             Circle().fill(Pal.danger).frame(width: 10, height: 10)
-                .opacity(Int(recElapsed * 2) % 2 == 0 ? 1 : 0.35)
+                .opacity(blinkStep % 2 == 0 ? 1 : 0.25)
+                .animation(.easeInOut(duration: 0.4), value: blinkStep)
             Text(durationText(recElapsed)).font(Typo.body(15, .medium)).monospacedDigit().foregroundStyle(.white)
             Spacer(minLength: 4)
             HStack(spacing: 4) {
                 Image(systemName: "chevron.left").font(.system(size: 13, weight: .semibold))
                 Text("влево — отмена").font(Typo.body(14))
             }
-            .foregroundStyle(Pal.fg2.opacity(1 - cancelProgress * 0.7))
-            .offset(x: min(0, dragX * 0.5))
+            .foregroundStyle(Pal.fg2)
+            .opacity(1 - cancelProgress * 0.85)
+            .offset(x: min(0, dragX * 0.8))
         }
         .padding(.horizontal, 16)
         .frame(height: 44)
         .glass(.light, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
+    /// Замок над кнопкой: подтягивается за пальцем, стрелка гаснет, у порога замок «защёлкивается».
     private var lockHint: some View {
-        VStack(spacing: 4) {
-            Image(systemName: "lock.fill").font(.system(size: 14, weight: .semibold))
+        let progress: CGFloat = min(1, max(0, -dragY / 80))
+        let closing: Bool = progress > 0.75
+        return VStack(spacing: 4) {
+            Image(systemName: closing ? "lock.fill" : "lock.open.fill")
+                .font(.system(size: 14, weight: .semibold))
+                .contentTransition(.symbolEffect(.replace))
             Image(systemName: "chevron.up").font(.system(size: 12, weight: .bold))
+                .opacity(Double(1 - progress))
+                .offset(y: -progress * 4)
         }
         .foregroundStyle(.white)
         .frame(width: 44, height: 70)
         .glass(.light, in: Capsule())
-        .offset(y: min(0, dragY * 0.4))
-        .transition(.opacity)
+        .scaleEffect(reduceMotion ? 1 : 1 + progress * 0.08)
+        .offset(y: -progress * 26)
+        .animation(.spring(response: 0.25, dampingFraction: 0.8), value: closing)
         .accessibilityLabel("Вверх — запись без рук")
     }
 
@@ -1179,33 +1252,65 @@ struct ChatView: View {
     /// иначе микрофон (или камера кружка в Telegram): удержать — записать, нажать — сменить режим.
     private func mainButton(_ conv: Conversation, hasText: Bool, canNote: Bool) -> some View {
         let phase: VoiceRecorder.Phase = recPhase
-        let recording: Bool = phase == .recording
+        // «живая» кнопка: идёт запись или удержание уже прошло порог (микрофон/камера ещё поднимаются)
+        let live: Bool = phase == .recording || (holdLive && pressing && phase == .idle)
         let sendMode: Bool = hasText || phase == .locked || phase == .preview
         let icon: String = sendMode ? "arrow.up" : (videoMode && canNote ? "video" : "mic")
-        let filled: Bool = sendMode || uploading || recording
-        let recIcon: String = notePhase == .recording ? "video.fill" : "mic.fill"
+        let filled: Bool = sendMode || uploading || live
+        let noteIcon: Bool = notePhase == .recording || (holdLive && videoMode && canNote)
+        let recIcon: String = noteIcon ? "video.fill" : "mic.fill"
         return ZStack {
             if uploading { ProgressView().tint(Pal.ink) } else {
-                Image(systemName: recording ? recIcon : icon)
+                Image(systemName: live ? recIcon : icon)
                     .font(.system(size: 19, weight: sendMode ? .bold : .regular))
                     .foregroundStyle(filled ? Pal.ink : .white)
+                    .contentTransition(.symbolEffect(.replace))
+                    .symbolEffect(.bounce, value: videoMode)
             }
         }
         .frame(width: 44, height: 44)
-        .background(Circle().fill(recording ? Pal.danger : (filled ? Pal.acc : .clear)))
-        .scaleEffect(recording ? 1.25 : 1)
-        .offset(x: recording ? min(0, dragX) : 0, y: recording ? min(0, dragY) : 0)
-        .contentTransition(.symbolEffect(.replace))
+        .background(buttonCore(live: live, filled: filled))
+        .background(recordHalo(live: live))
+        .scaleEffect(pressScale(live: live))
+        .offset(x: live ? min(0, dragX) : 0, y: live ? min(0, dragY) : 0)
         .contentShape(Circle())
         .glass(.light, in: Circle(), interactive: true)
         .gesture(holdGesture(conv, canNote: canNote, sendMode: sendMode, hasText: hasText))
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: sendMode)
-        .animation(.spring(response: 0.25, dampingFraction: 0.75), value: phase)
+        .animation(.spring(response: 0.3, dampingFraction: 0.75), value: sendMode)
+        .animation(recSpring, value: live)
+        .animation(.spring(response: 0.22, dampingFraction: 0.7), value: pressing)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: videoMode)
         .accessibilityLabel(sendMode ? String(localized: "Отправить") : (videoMode && canNote ? String(localized: "Кружок: удерживай, чтобы записать") : String(localized: "Голосовое: удерживай, чтобы записать")))
         .accessibilityAddTraits(.isButton)
         .accessibilityAction { tapSend(conv, sendMode: sendMode, hasText: hasText) }
     }
+
+    /// Заливка кнопки: во время записи — большой красный круг под пальцем (как в Telegram).
+    private func buttonCore(live: Bool, filled: Bool) -> some View {
+        let fill: Color = live ? Pal.danger : (filled ? Pal.acc : Color.clear)
+        let grow: CGFloat = live && !reduceMotion ? 1.75 : 1
+        return Circle().fill(fill).scaleEffect(grow)
+    }
+
+    /// Ореол вокруг круга: «дышит» по громкости микрофона.
+    @ViewBuilder private func recordHalo(live: Bool) -> some View {
+        if live && !reduceMotion {
+            Circle()
+                .fill(Pal.danger.opacity(0.24))
+                .scaleEffect(2.0 + min(1, recLevel) * 0.7)
+                .animation(.spring(response: 0.2, dampingFraction: 0.65), value: recLevel)
+                .transition(.scale(scale: 0.5).combined(with: .opacity))
+                .allowsHitTesting(false)
+        }
+    }
+
+    /// Нажатие до порога — кнопка чуть проседает (видно, что палец «поймали»).
+    private func pressScale(live: Bool) -> CGFloat {
+        if reduceMotion || live || !pressing || pressSendMode { return 1 }
+        return 0.9
+    }
+
+    private var recLevel: CGFloat { notePhase != .idle ? cam.level : recorder.level }
 
     private func tapSend(_ conv: Conversation, sendMode: Bool, hasText: Bool) {
         guard sendMode else {
@@ -1235,23 +1340,34 @@ struct ChatView: View {
                     if !sendMode { beginHold(canNote: canNote) }
                 }
                 guard recPhase == .recording else { return }
-                dragX = min(0, v.translation.width)
-                dragY = min(0, v.translation.height)
+                // палец ведёт либо влево (отмена), либо вверх (замок) — второе направление гасим, чтобы круг не «плавал»
+                let tx: CGFloat = min(0, v.translation.width)
+                let ty: CGFloat = min(0, v.translation.height)
+                if -tx > -ty {
+                    dragX = tx
+                    dragY = ty * 0.25
+                } else {
+                    dragX = tx * 0.25
+                    dragY = ty
+                }
                 if v.translation.width < -110 {
-                    if notePhase == .recording { cancelNote() } else { recorder.cancel(); haptic(.rigid) }
+                    holdLive = false
+                    if notePhase == .recording { cancelNote() } else { cancelVoice() }
                     resetDrag()
                 } else if v.translation.height < -80 {
+                    holdLive = false
                     if notePhase == .recording {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { notePhase = .locked }
+                        withAnimation(recSpring) { notePhase = .locked }
                         haptic(.medium)
                     } else {
-                        recorder.lock()
+                        withAnimation(recSpring) { recorder.lock() }
                     }
                     resetDrag()
                 }
             }
             .onEnded { v in
                 pressing = false
+                holdLive = false
                 resetDrag()
                 if pressSendMode {
                     // отпустили над кнопкой — отправляем
@@ -1263,27 +1379,40 @@ struct ChatView: View {
     }
 
     private func resetDrag() {
-        withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) { dragX = 0; dragY = 0 }
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.78)) { dragX = 0; dragY = 0 }
+    }
+
+    /// Отмена голосового свайпом: плавное исчезновение полосы + корзина.
+    private func cancelVoice() {
+        haptic(.rigid)
+        withAnimation(recSpring) { recorder.cancel() }
+        flashTrash()
     }
 
     private func beginHold(canNote: Bool) {
         holdTask?.cancel()
+        let note: Bool = videoMode && canNote
+        // кружок: камеру включаем сразу при касании — к порогу удержания превью уже почти готово
+        if note && !store.fixture { cam.prepare() }
         holdTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 260_000_000)
+            try? await Task.sleep(nanoseconds: 170_000_000)
             guard !Task.isCancelled, pressing else { return }
             holdTask = nil
             haptic(.medium)
-            if videoMode && canNote {
+            withAnimation(recSpring) { holdLive = true }
+            if note {
                 startNote()
                 return
             }
             inputFocused = false
             let ok = await recorder.start()
             if !ok {
+                holdLive = false
                 store.show(String(localized: "Нет доступа к микрофону — разреши в настройках iPhone"), ok: false)
             } else if !pressing {
-                // отпустили, пока система спрашивала доступ, — запись не начинаем
+                // отпустили, пока микрофон поднимался (или система спрашивала доступ), — запись не начинаем
                 recorder.cancel()
+                store.show(String(localized: "Удерживай кнопку, чтобы записать"))
             }
         }
     }
@@ -1294,6 +1423,8 @@ struct ChatView: View {
             t.cancel()
             holdTask = nil
             if canNote {
+                // камеру включили на касании «на всякий случай» — это было нажатие, выключаем
+                if videoMode && !store.fixture { cam.shutdown() }
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { videoMode.toggle() }
                 haptic()
                 store.show(videoMode ? String(localized: "Режим кружка: удерживай кнопку, чтобы записать") : String(localized: "Режим голосового: удерживай, чтобы записать"))
@@ -1320,10 +1451,20 @@ struct ChatView: View {
         cam.problem = nil
         cam.reset()
         noteFinish = nil
-        withAnimation(.spring(response: 0.32, dampingFraction: 0.78)) { notePhase = .recording }
+        withAnimation(noteSpring) { notePhase = .recording }
         if store.fixture { return }
-        // запись начнётся, когда камера включится (onChange cam.ready)
-        cam.prepare()
+        // камера уже могла включиться (её запускают на касании) — тогда пишем сразу,
+        // иначе запись начнётся, когда она включится (onChange cam.ready)
+        if cam.ready {
+            if !cam.recording { cam.record() }
+        } else {
+            cam.prepare()
+        }
+    }
+
+    /// Вылет/улёт кружка: пружина помягче, чем у кнопки.
+    private var noteSpring: Animation {
+        reduceMotion ? .easeInOut(duration: 0.2) : .spring(response: 0.38, dampingFraction: 0.78)
     }
 
     /// Остановить запись: отправить, показать для прослушивания или выбросить.
@@ -1334,7 +1475,7 @@ struct ChatView: View {
             closeNote()
             return
         }
-        let tooShort: Bool = !cam.recording || (finish == .send && cam.elapsed < 0.8)
+        let tooShort: Bool = !cam.recording || (finish == .send && cam.elapsed < 0.5)
         if tooShort {
             if finish != .discard { store.show(String(localized: "Слишком коротко — держи кнопку дольше"), ok: false) }
             noteFinish = .discard
@@ -1347,6 +1488,7 @@ struct ChatView: View {
 
     private func cancelNote() {
         haptic(.rigid)
+        flashTrash()
         if notePhase == .preview { closeNote() } else { stopNote(.discard) }
     }
 
@@ -1361,7 +1503,7 @@ struct ChatView: View {
             Task { await sendNote(url) }
         case .preview:
             cam.shutdown()
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { notePhase = .preview }
+            withAnimation(noteSpring) { notePhase = .preview }
         case .discard:
             closeNote()
         }
@@ -1376,31 +1518,54 @@ struct ChatView: View {
             cam.reset()
         }
         noteFinish = nil
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { notePhase = .idle }
+        withAnimation(noteSpring) { notePhase = .idle }
+    }
+
+    /// Фон под кружком: размытие и затемнение ленты (появляется/уходит отдельно от самого круга).
+    @ViewBuilder private var noteDim: some View {
+        if notePhase != .idle {
+            ZStack {
+                Rectangle().fill(.ultraThinMaterial)
+                Color.black.opacity(0.35)
+            }
+            .ignoresSafeArea()
+            .allowsHitTesting(notePhase != .recording)
+            .transition(.opacity)
+        }
     }
 
     /// Живой круг камеры над полем ввода (поверх ленты), кольцо до 60 с; в режиме без рук — «сменить камеру» и «стоп».
+    /// Вылетает пружиной из кнопки (правый нижний угол) и туда же «улетает» при отправке.
     @ViewBuilder private var noteOverlay: some View {
         if notePhase != .idle {
-            ZStack(alignment: .bottom) {
-                Color.black.opacity(0.5).ignoresSafeArea()
-                    .allowsHitTesting(notePhase != .recording)
-                VStack(spacing: 16) {
-                    noteCircle
-                    if notePhase == .locked {
-                        HStack(spacing: 22) {
-                            noteControl(icon: "arrow.triangle.2.circlepath.camera", label: String(localized: "Сменить камеру")) { haptic(); cam.switchCamera() }
-                            noteControl(icon: "stop.fill", label: String(localized: "Стоп"), tint: Pal.danger) { haptic(); stopNote(.preview) }
-                        }
-                        .transition(.opacity.combined(with: .scale(scale: 0.8)))
-                    } else if notePhase == .recording {
-                        Text("Отпусти — отправится").font(Typo.body(13, .medium)).foregroundStyle(Pal.fg2)
-                    }
-                }
-                .padding(.bottom, 118)
+            VStack(spacing: 16) {
+                noteCircle
+                noteControls
             }
-            .transition(.opacity.combined(with: .scale(scale: 0.85, anchor: .bottomTrailing)))
+            .padding(.bottom, 118)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .transition(noteTransition)
             .accessibilityIdentifier("note-overlay")
+        }
+    }
+
+    private var noteTransition: AnyTransition {
+        if reduceMotion { return .opacity }
+        let insertion: AnyTransition = .scale(scale: 0.15, anchor: .bottomTrailing).combined(with: .opacity)
+        let removal: AnyTransition = .scale(scale: 0.3, anchor: .bottomTrailing).combined(with: .opacity)
+        return .asymmetric(insertion: insertion, removal: removal)
+    }
+
+    @ViewBuilder private var noteControls: some View {
+        if notePhase == .locked {
+            HStack(spacing: 22) {
+                noteControl(icon: "arrow.triangle.2.circlepath.camera", label: String(localized: "Сменить камеру")) { haptic(); cam.switchCamera() }
+                noteControl(icon: "stop.fill", label: String(localized: "Стоп"), tint: Pal.danger) { haptic(); stopNote(.preview) }
+            }
+            .transition(.opacity.combined(with: .scale(scale: 0.8)))
+        } else if notePhase == .recording {
+            Text("Отпусти — отправится").font(Typo.body(13, .medium)).foregroundStyle(Pal.fg2)
+                .transition(.opacity)
         }
     }
 
@@ -1418,9 +1583,11 @@ struct ChatView: View {
                 .stroke(Pal.acc, style: StrokeStyle(lineWidth: 4, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .padding(-7)
+                .animation(.linear(duration: 0.1), value: progress)
         }
         .frame(width: side, height: side)
         .shadow(color: .black.opacity(0.35), radius: 18, y: 6)
+        .animation(.easeOut(duration: 0.25), value: cam.ready)
     }
 
     @ViewBuilder private var noteCircleContent: some View {
@@ -1430,11 +1597,13 @@ struct ChatView: View {
             Image(uiImage: fixtureNoteImage()).resizable().scaledToFill()
         } else if cam.ready {
             CameraPreview(session: cam.session)
+                .transition(.opacity)
         } else {
             ZStack {
                 Color.black.opacity(0.4)
                 ProgressView().tint(.white)
             }
+            .transition(.opacity)
         }
     }
 

@@ -9,6 +9,7 @@ final class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordin
     @Published var ready = false
     @Published var recording = false
     @Published var elapsed: TimeInterval = 0
+    @Published var level: CGFloat = 0
     @Published var outputURL: URL?
     @Published var problem: String?
 
@@ -18,24 +19,41 @@ final class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordin
     private var timer: Timer?
     private var startedAt: Date?
     private var configured = false
+    /// камеру просили включить и ещё не выключали (только главный поток): поздний старт после shutdown не включит её снова
+    private var wantRunning = false
     static let maxDuration: Double = 60
 
+    /// Включить камеру (разрешения → настройка → startRunning на своей очереди, UI не ждёт).
     func prepare() {
+        start(run: true)
+    }
+
+    /// Прогрев при переключении в режим кружка: спросить доступ и собрать сессию заранее, камеру не включаем
+    /// (индикатор камеры не горит), чтобы при удержании превью появилось почти сразу.
+    func warmUp() {
+        start(run: false)
+    }
+
+    private func start(run: Bool) {
+        if run { wantRunning = true }
         Task { @MainActor in
             let video: Bool = await AVCaptureDevice.requestAccess(for: .video)
             let audio: Bool = await AVCaptureDevice.requestAccess(for: .audio)
             guard video else {
-                self.problem = String(localized: "Нет доступа к камере — разреши в настройках iPhone")
+                if run { self.problem = String(localized: "Нет доступа к камере — разреши в настройках iPhone") }
                 return
             }
-            self.queue.async { self.configure(audio: audio) }
+            if run && !self.wantRunning { return }
+            self.queue.async { self.configure(audio: audio, run: run) }
         }
     }
 
-    private func configure(audio: Bool) {
+    private func configure(audio: Bool, run: Bool) {
         if configured {
+            guard run else { return }
             if !session.isRunning { session.startRunning() }
-            DispatchQueue.main.async { self.ready = self.session.isRunning }
+            let running: Bool = session.isRunning
+            DispatchQueue.main.async { self.ready = running }
             return
         }
         configured = true
@@ -58,8 +76,18 @@ final class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordin
             if c.isVideoRotationAngleSupported(90) { c.videoRotationAngle = 90 }
         }
         session.commitConfiguration()
+        guard run else { return }
         session.startRunning()
-        DispatchQueue.main.async { self.ready = self.session.isRunning }
+        let running: Bool = session.isRunning
+        DispatchQueue.main.async { self.ready = running }
+    }
+
+    /// Громкость микрофона во время записи 0…1 (сглаженная) — для «дыхания» кнопки.
+    private func audioLevel() -> CGFloat {
+        guard let ch = output.connection(with: .audio)?.audioChannels.first else { return 0 }
+        let db: Float = ch.averagePowerLevel
+        let raw: CGFloat = max(0, min(1, CGFloat(pow(10, Double(db) / 40))))
+        return level * 0.4 + raw * 0.6
     }
 
     func record() {
@@ -74,6 +102,7 @@ final class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordin
         let t = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self, let s = self.startedAt else { return }
             self.elapsed = min(Self.maxDuration, Date().timeIntervalSince(s))
+            self.level = self.audioLevel()
         }
         RunLoop.main.add(t, forMode: .common)
         timer = t
@@ -112,6 +141,8 @@ final class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordin
     func shutdown() {
         timer?.invalidate()
         ready = false
+        level = 0
+        wantRunning = false
         queue.async {
             if self.output.isRecording { self.output.stopRecording() }
             self.session.stopRunning()
@@ -125,6 +156,7 @@ final class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordin
         DispatchQueue.main.async {
             self.timer?.invalidate()
             self.recording = false
+            self.level = 0
             if finished {
                 self.outputURL = outputFileURL
             } else {
