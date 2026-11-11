@@ -1953,54 +1953,54 @@
         }
       }
     },
-    "WhatsApp, Telegram, Instagram и Threads — в одном списке. Отвечайте клиентам, не переключаясь между приложениями." : {
+    "WhatsApp, Telegram и Threads — в одном списке. Отвечайте клиентам, не переключаясь между приложениями." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Instagram und Threads in einer Liste. Antworten Sie Kunden, ohne zwischen Apps zu wechseln."
+            "value" : "WhatsApp, Telegram und Threads in einer Liste. Antworten Sie Kunden, ohne zwischen Apps zu wechseln."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Instagram and Threads in one list. Reply to clients without switching apps."
+            "value" : "WhatsApp, Telegram and Threads in one list. Reply to clients without switching apps."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Instagram y Threads en una sola lista. Responde a tus clientes sin cambiar de app."
+            "value" : "WhatsApp, Telegram y Threads en una sola lista. Responde a tus clientes sin cambiar de app."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Instagram et Threads dans une seule liste. Répondez à vos clients sans changer d'application."
+            "value" : "WhatsApp, Telegram et Threads dans une seule liste. Répondez à vos clients sans changer d'application."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Instagram e Threads in un'unica lista. Rispondi ai clienti senza cambiare app."
+            "value" : "WhatsApp, Telegram e Threads in un'unica lista. Rispondi ai clienti senza cambiare app."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Instagram i Threads na jednej liście. Odpowiadaj klientom bez przełączania aplikacji."
+            "value" : "WhatsApp, Telegram i Threads na jednej liście. Odpowiadaj klientom bez przełączania aplikacji."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Instagram e Threads em uma só lista. Responda aos clientes sem trocar de app."
+            "value" : "WhatsApp, Telegram e Threads em uma só lista. Responda aos clientes sem trocar de app."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Instagram и Threads — в одном списке. Отвечайте клиентам, не переключаясь между приложениями."
+            "value" : "WhatsApp, Telegram и Threads — в одном списке. Отвечайте клиентам, не переключаясь между приложениями."
           }
         }
       }
@@ -6969,54 +6969,54 @@
         }
       }
     },
-    "Для перевода и расшифровки текст и звук сообщений отправляются в сторонний ИИ-сервис (Groq). Разрешить?" : {
+    "Для перевода и расшифровки текст и звук сообщений отправляются в сторонние ИИ-сервисы (Anthropic, Groq). Разрешить?" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zum Übersetzen und Transkribieren werden Text und Audio der Nachrichten an einen KI-Dienst eines Drittanbieters (Groq) gesendet. Erlauben?"
+            "value" : "Zum Übersetzen und Transkribieren werden Text und Audio der Nachrichten an einen KI-Dienst eines Drittanbieters (Anthropic, Groq) gesendet. Erlauben?"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To translate and transcribe, message text and audio are sent to a third-party AI service (Groq). Allow?"
+            "value" : "To translate and transcribe, message text and audio are sent to third-party AI services (Anthropic, Groq). Allow?"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para traducir y transcribir, el texto y el audio de los mensajes se envían a un servicio de IA de terceros (Groq). ¿Permitir?"
+            "value" : "Para traducir y transcribir, el texto y el audio de los mensajes se envían a un servicio de IA de terceros (Anthropic, Groq). ¿Permitir?"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pour la traduction et la transcription, le texte et l'audio des messages sont envoyés à un service d'IA tiers (Groq). Autoriser ?"
+            "value" : "Pour la traduction et la transcription, le texte et l'audio des messages sont envoyés à un service d'IA tiers (Anthropic, Groq). Autoriser ?"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Per tradurre e trascrivere, il testo e l'audio dei messaggi vengono inviati a un servizio di IA di terze parti (Groq). Consentire?"
+            "value" : "Per tradurre e trascrivere, il testo e l'audio dei messaggi vengono inviati a un servizio di IA di terze parti (Anthropic, Groq). Consentire?"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aby tłumaczyć i transkrybować, tekst i dźwięk wiadomości są wysyłane do zewnętrznej usługi AI (Groq). Zezwolić?"
+            "value" : "Aby tłumaczyć i transkrybować, tekst i dźwięk wiadomości są wysyłane do zewnętrznej usługi AI (Anthropic, Groq). Zezwolić?"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para traduzir e transcrever, o texto e o áudio das mensagens são enviados a um serviço de IA de terceiros (Groq). Permitir?"
+            "value" : "Para traduzir e transcrever, o texto e o áudio das mensagens são enviados a um serviço de IA de terceiros (Anthropic, Groq). Permitir?"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Для перевода и расшифровки текст и звук сообщений отправляются в сторонний ИИ-сервис (Groq). Разрешить?"
+            "value" : "Для перевода и расшифровки текст и звук сообщений отправляются в сторонние ИИ-сервисы (Anthropic, Groq). Разрешить?"
           }
         }
       }
@@ -35477,54 +35477,54 @@
         }
       }
     },
-    "сообщения обрабатывает сервис Groq" : {
+    "сообщения обрабатывают ИИ-сервисы Anthropic и Groq" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nachrichten werden von Groq verarbeitet"
+            "value" : "Nachrichten werden von Anthropic und Groq verarbeitet"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "messages are processed by Groq"
+            "value" : "messages are processed by Anthropic and Groq"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "los mensajes los procesa Groq"
+            "value" : "los mensajes los procesan Anthropic y Groq"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "les messages sont traités par Groq"
+            "value" : "les messages sont traités par Anthropic et Groq"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "i messaggi sono elaborati da Groq"
+            "value" : "i messaggi sono elaborati da Anthropic e Groq"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "wiadomości przetwarza usługa Groq"
+            "value" : "wiadomości przetwarzają Anthropic i Groq"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "as mensagens são processadas pelo Groq"
+            "value" : "as mensagens são processadas pela Anthropic e pelo Groq"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "сообщения обрабатывает сервис Groq"
+            "value" : "сообщения обрабатывают ИИ-сервисы Anthropic и Groq"
           }
         }
       }

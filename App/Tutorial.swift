@@ -18,7 +18,7 @@ struct OnboardingView: View {
         [
             OnboardPage(icon: "bubble.left.and.bubble.right.fill", color: Pal.acc,
                         title: String(localized: "Все чаты в одном месте"),
-                        text: String(localized: "WhatsApp, Telegram, Instagram и Threads — в одном списке. Отвечайте клиентам, не переключаясь между приложениями.")),
+                        text: String(localized: "WhatsApp, Telegram и Threads — в одном списке. Отвечайте клиентам, не переключаясь между приложениями.")),
             OnboardPage(icon: "folder.fill", color: Pal.sky,
                         title: String(localized: "Папки и метки"),
                         text: String(localized: "Папка — этап сделки: новые, думает, оплатил. Метка — любая пометка, например «VIP». Смахните чат влево — «В папку».")),

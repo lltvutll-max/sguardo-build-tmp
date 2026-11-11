@@ -109,7 +109,7 @@ struct RootView: View {
             Button("Разрешить") { store.answerAI(true) }
             Button("Не сейчас", role: .cancel) { store.answerAI(false) }
         } message: {
-            Text("Для перевода и расшифровки текст и звук сообщений отправляются в сторонний ИИ-сервис (Groq). Разрешить?")
+            Text("Для перевода и расшифровки текст и звук сообщений отправляются в сторонние ИИ-сервисы (Anthropic, Groq). Разрешить?")
         }
     }
 

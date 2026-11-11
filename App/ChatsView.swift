@@ -12,7 +12,7 @@ struct ChatsView: View {
     @State private var moreFor: String?
 
     /// Сети в фильтре (чаты других сетей, если придут с сервера, видны во «Все»).
-    static let nets: [String] = ["whatsapp", "telegram", "instagram", "threads"]
+    static let nets: [String] = ["whatsapp", "telegram", "threads"]
 
     private func matches(_ c: Conversation, query: String) -> Bool {
         let contact: Contact? = store.contact(c.contactId)

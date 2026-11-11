@@ -253,7 +253,7 @@ struct ProfileView: View {
             RowIcon(system: "globe", color: Pal.sky)
             VStack(alignment: .leading, spacing: 1) {
                 Text("Перевод и расшифровка через ИИ").foregroundStyle(Pal.fg)
-                Text("сообщения обрабатывает сервис Groq").font(Typo.body(13)).foregroundStyle(Pal.fg3)
+                Text("сообщения обрабатывают ИИ-сервисы Anthropic и Groq").font(Typo.body(13)).foregroundStyle(Pal.fg3)
             }
             Spacer()
             GlassSwitch(isOn: Binding(get: { store.aiConsent }, set: { (v: Bool) in store.setAIConsent(v) }))
