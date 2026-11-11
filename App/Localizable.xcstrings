@@ -6969,54 +6969,54 @@
         }
       }
     },
-    "Для перевода и расшифровки текст и звук сообщений отправляются в сторонние ИИ-сервисы (Anthropic, Groq). Разрешить?" : {
+    "Для перевода, расшифровки и разбора переписки текст и звук сообщений отправляются в сторонние ИИ-сервисы (список — в политике конфиденциальности). Разрешить?" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zum Übersetzen und Transkribieren werden Text und Audio der Nachrichten an einen KI-Dienst eines Drittanbieters (Anthropic, Groq) gesendet. Erlauben?"
+            "value" : "Zum Übersetzen, Transkribieren und Analysieren werden Text und Audio der Nachrichten an KI-Dienste von Drittanbietern gesendet (Liste in der Datenschutzerklärung). Erlauben?"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To translate and transcribe, message text and audio are sent to third-party AI services (Anthropic, Groq). Allow?"
+            "value" : "To translate, transcribe and analyse chats, message text and audio are sent to third-party AI services (listed in the privacy policy). Allow?"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para traducir y transcribir, el texto y el audio de los mensajes se envían a un servicio de IA de terceros (Anthropic, Groq). ¿Permitir?"
+            "value" : "Para traducir, transcribir y analizar los chats, el texto y el audio de los mensajes se envían a servicios de IA de terceros (lista en la política de privacidad). ¿Permitir?"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pour la traduction et la transcription, le texte et l'audio des messages sont envoyés à un service d'IA tiers (Anthropic, Groq). Autoriser ?"
+            "value" : "Pour traduire, transcrire et analyser les conversations, le texte et l'audio des messages sont envoyés à des services d'IA tiers (liste dans la politique de confidentialité). Autoriser ?"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Per tradurre e trascrivere, il testo e l'audio dei messaggi vengono inviati a un servizio di IA di terze parti (Anthropic, Groq). Consentire?"
+            "value" : "Per tradurre, trascrivere e analizzare le chat, il testo e l'audio dei messaggi vengono inviati a servizi di IA di terze parti (elenco nell'informativa sulla privacy). Consentire?"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aby tłumaczyć i transkrybować, tekst i dźwięk wiadomości są wysyłane do zewnętrznej usługi AI (Anthropic, Groq). Zezwolić?"
+            "value" : "Aby tłumaczyć, transkrybować i analizować czaty, tekst i dźwięk wiadomości są wysyłane do zewnętrznych usług AI (lista w polityce prywatności). Zezwolić?"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para traduzir e transcrever, o texto e o áudio das mensagens são enviados a um serviço de IA de terceiros (Anthropic, Groq). Permitir?"
+            "value" : "Para traduzir, transcrever e analisar conversas, o texto e o áudio das mensagens são enviados a serviços de IA de terceiros (lista na política de privacidade). Permitir?"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Для перевода и расшифровки текст и звук сообщений отправляются в сторонние ИИ-сервисы (Anthropic, Groq). Разрешить?"
+            "value" : "Для перевода, расшифровки и разбора переписки текст и звук сообщений отправляются в сторонние ИИ-сервисы (список — в политике конфиденциальности). Разрешить?"
           }
         }
       }
@@ -35477,54 +35477,54 @@
         }
       }
     },
-    "сообщения обрабатывают ИИ-сервисы Anthropic и Groq" : {
+    "сообщения обрабатывают сторонние ИИ-сервисы — список в политике" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nachrichten werden von Anthropic und Groq verarbeitet"
+            "value" : "Nachrichten werden von KI-Drittanbietern verarbeitet – siehe Datenschutzerklärung"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "messages are processed by Anthropic and Groq"
+            "value" : "messages are processed by third-party AI services — see the privacy policy"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "los mensajes los procesan Anthropic y Groq"
+            "value" : "los mensajes los procesan servicios de IA de terceros: ver la política de privacidad"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "les messages sont traités par Anthropic et Groq"
+            "value" : "les messages sont traités par des services d'IA tiers — voir la politique de confidentialité"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "i messaggi sono elaborati da Anthropic e Groq"
+            "value" : "i messaggi sono elaborati da servizi di IA di terze parti — vedi l'informativa"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "wiadomości przetwarzają Anthropic i Groq"
+            "value" : "wiadomości przetwarzają zewnętrzne usługi AI — zobacz politykę prywatności"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "as mensagens são processadas pela Anthropic e pelo Groq"
+            "value" : "as mensagens são processadas por serviços de IA de terceiros — veja a política de privacidade"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "сообщения обрабатывают ИИ-сервисы Anthropic и Groq"
+            "value" : "сообщения обрабатывают сторонние ИИ-сервисы — список в политике"
           }
         }
       }
