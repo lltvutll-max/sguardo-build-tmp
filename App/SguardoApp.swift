@@ -105,6 +105,17 @@ struct RootView: View {
             // вернуть тему приложения после чата (preferredColorScheme(nil) сам системную не возвращает)
             if !on { DispatchQueue.main.async { Prefs.shared.applyWindowStyle() } }
         }
+        .alert(Text("Перевод и расшифровка через ИИ"), isPresented: aiAskBinding) {
+            Button("Разрешить") { store.answerAI(true) }
+            Button("Не сейчас", role: .cancel) { store.answerAI(false) }
+        } message: {
+            Text("Для перевода и расшифровки текст и звук сообщений отправляются в сторонний ИИ-сервис (Groq). Разрешить?")
+        }
+    }
+
+    /// Алерт согласия на ИИ: решение принимают кнопки (answerAI), биндинг только закрывает.
+    private var aiAskBinding: Binding<Bool> {
+        Binding<Bool>(get: { store.aiAsk }, set: { (v: Bool) in if !v { store.aiAsk = false } })
     }
 }
 
@@ -154,7 +165,8 @@ extension View {
                 case .chat(let id): ChatScreen(convId: id)
                 case .client(let id): ClientView(contactId: id)
                 case .folders: FoldersView()
-                case .outreach: OutreachView()
+                case .outreach:
+                    if AppFeatures.outreach { OutreachView() } else { EmptyView() }
                 case .partners: PartnerDestination()
                 case .partnerLead(let p, let k): PartnerLeadView(partner: p, lead: k)
                 }

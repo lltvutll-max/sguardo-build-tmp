@@ -1953,54 +1953,54 @@
         }
       }
     },
-    "WhatsApp, Telegram, Threads и TikTok — в одном списке. Отвечайте клиентам, не переключаясь между приложениями." : {
+    "WhatsApp, Telegram, Instagram и Threads — в одном списке. Отвечайте клиентам, не переключаясь между приложениями." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Threads und TikTok in einer Liste. Antworten Sie Kunden, ohne zwischen Apps zu wechseln."
+            "value" : "WhatsApp, Telegram, Instagram und Threads in einer Liste. Antworten Sie Kunden, ohne zwischen Apps zu wechseln."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Threads and TikTok in one list. Reply to clients without switching apps."
+            "value" : "WhatsApp, Telegram, Instagram and Threads in one list. Reply to clients without switching apps."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Threads y TikTok en una sola lista. Responde a tus clientes sin cambiar de app."
+            "value" : "WhatsApp, Telegram, Instagram y Threads en una sola lista. Responde a tus clientes sin cambiar de app."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Threads et TikTok dans une seule liste. Répondez à vos clients sans changer d'application."
+            "value" : "WhatsApp, Telegram, Instagram et Threads dans une seule liste. Répondez à vos clients sans changer d'application."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Threads e TikTok in un'unica lista. Rispondi ai clienti senza cambiare app."
+            "value" : "WhatsApp, Telegram, Instagram e Threads in un'unica lista. Rispondi ai clienti senza cambiare app."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Threads i TikTok na jednej liście. Odpowiadaj klientom bez przełączania aplikacji."
+            "value" : "WhatsApp, Telegram, Instagram i Threads na jednej liście. Odpowiadaj klientom bez przełączania aplikacji."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Threads e TikTok em uma só lista. Responda aos clientes sem trocar de app."
+            "value" : "WhatsApp, Telegram, Instagram e Threads em uma só lista. Responda aos clientes sem trocar de app."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp, Telegram, Threads и TikTok — в одном списке. Отвечайте клиентам, не переключаясь между приложениями."
+            "value" : "WhatsApp, Telegram, Instagram и Threads — в одном списке. Отвечайте клиентам, не переключаясь между приложениями."
           }
         }
       }
@@ -3709,6 +3709,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Видео, смотреть"
+          }
+        }
+      }
+    },
+    "Включить" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einschalten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attiva"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Włącz"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ativar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить"
           }
         }
       }
@@ -6917,6 +6969,58 @@
         }
       }
     },
+    "Для перевода и расшифровки текст и звук сообщений отправляются в сторонний ИИ-сервис (Groq). Разрешить?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zum Übersetzen und Transkribieren werden Text und Audio der Nachrichten an einen KI-Dienst eines Drittanbieters (Groq) gesendet. Erlauben?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To translate and transcribe, message text and audio are sent to a third-party AI service (Groq). Allow?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para traducir y transcribir, el texto y el audio de los mensajes se envían a un servicio de IA de terceros (Groq). ¿Permitir?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour la traduction et la transcription, le texte et l'audio des messages sont envoyés à un service d'IA tiers (Groq). Autoriser ?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per tradurre e trascrivere, il testo e l'audio dei messaggi vengono inviati a un servizio di IA di terze parti (Groq). Consentire?"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aby tłumaczyć i transkrybować, tekst i dźwięk wiadomości są wysyłane do zewnętrznej usługi AI (Groq). Zezwolić?"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para traduzir e transcrever, o texto e o áudio das mensagens são enviados a um serviço de IA de terceiros (Groq). Permitir?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для перевода и расшифровки текст и звук сообщений отправляются в сторонний ИИ-сервис (Groq). Разрешить?"
+          }
+        }
+      }
+    },
     "Дни недели" : {
       "localizations" : {
         "de" : {
@@ -8801,58 +8905,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Кабинет"
-          }
-        }
-      }
-    },
-    "Кабинет не оплачен — продли тариф в веб-версии" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Konto nicht bezahlt — verlängern Sie den Tarif in der Webversion"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Account not paid — renew your plan in the web version"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La cuenta no está pagada — renueva el plan en la versión web"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Espace non payé — renouvelez l'offre dans la version web"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Account non pagato — rinnova il piano nella versione web"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Panel nieopłacony — przedłuż plan w wersji webowej"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Conta não paga — renove o plano na versão web"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Кабинет не оплачен — продли тариф в веб-версии"
           }
         }
       }
@@ -13113,6 +13165,58 @@
         }
       }
     },
+    "Не сейчас" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht jetzt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora no"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plus tard"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non ora"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie teraz"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agora não"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не сейчас"
+          }
+        }
+      }
+    },
     "Неделя" : {
       "localizations" : {
         "de" : {
@@ -13997,54 +14101,54 @@
         }
       }
     },
-    "Новый аккаунт подключается в веб-версии: там QR-код, его сканируют этим телефоном." : {
+    "Новые аккаунты подключаются в веб-версии Sguardo." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Neue Konten werden in der Web-Version verbunden: Scannen Sie dort den QR-Code mit diesem Telefon."
+            "value" : "Neue Konten werden in der Web-Version von Sguardo verbunden."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "New accounts are connected in the web version: scan the QR code there with this phone."
+            "value" : "New accounts are connected in the Sguardo web version."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Las cuentas nuevas se conectan en la versión web: escanea allí el código QR con este teléfono."
+            "value" : "Las cuentas nuevas se conectan en la versión web de Sguardo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les nouveaux comptes se connectent dans la version web : scannez-y le QR code avec ce téléphone."
+            "value" : "Les nouveaux comptes se connectent dans la version web de Sguardo."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I nuovi account si collegano nella versione web: scansiona lì il codice QR con questo telefono."
+            "value" : "I nuovi account si collegano nella versione web di Sguardo."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nowe konto podłącza się w wersji webowej: zeskanuj tam kod QR tym telefonem."
+            "value" : "Nowe konta łączy się w wersji webowej Sguardo."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Novas contas são conectadas na versão web: escaneie o QR code lá com este telefone."
+            "value" : "Novas contas são conectadas na versão web do Sguardo."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Новый аккаунт подключается в веб-версии: там QR-код, его сканируют этим телефоном."
+            "value" : "Новые аккаунты подключаются в веб-версии Sguardo."
           }
         }
       }
@@ -18901,6 +19005,58 @@
         }
       }
     },
+    "Перевод и расшифровка через ИИ" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KI-Übersetzung und Transkription"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI translation and transcription"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traducción y transcripción con IA"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traduction et transcription par IA"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traduzione e trascrizione con IA"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tłumaczenie i transkrypcja przez AI"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tradução e transcrição por IA"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перевод и расшифровка через ИИ"
+          }
+        }
+      }
+    },
     "Перевод не загрузился. Повторить" : {
       "localizations" : {
         "de" : {
@@ -19053,6 +19209,110 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Перевод переписки"
+          }
+        }
+      }
+    },
+    "Перевод через ИИ выключен" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KI-Übersetzung ist aus"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI translation is off"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traducción con IA desactivada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traduction par IA désactivée"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traduzione con IA disattivata"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tłumaczenie przez AI wyłączone"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tradução por IA desativada"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перевод через ИИ выключен"
+          }
+        }
+      }
+    },
+    "Перевод через ИИ выключен. Включить" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KI-Übersetzung ist aus. Einschalten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI translation is off. Turn on"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traducción con IA desactivada. Activar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traduction par IA désactivée. Activer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traduzione con IA disattivata. Attiva"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tłumaczenie przez AI wyłączone. Włącz"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tradução por IA desativada. Ativar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перевод через ИИ выключен. Включить"
           }
         }
       }
@@ -22505,6 +22765,58 @@
         }
       }
     },
+    "Разрешить" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erlauben"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autoriser"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consenti"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zezwól"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешить"
+          }
+        }
+      }
+    },
     "Рассылка TR" : {
       "localizations" : {
         "de" : {
@@ -24217,58 +24529,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Скопировать номер"
-          }
-        }
-      }
-    },
-    "Скоро" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bald"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Soon"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Próximamente"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bientôt"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In arrivo"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wkrótce"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Em breve"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Скоро"
           }
         }
       }
@@ -26197,58 +26457,6 @@
         }
       }
     },
-    "Тариф и оплата — в веб-кабинете Sguardo." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tarif und Zahlung finden Sie im Sguardo-Webkonto."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plan and billing are in the Sguardo web account."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El plan y el pago están en la cuenta web de Sguardo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L'offre et le paiement se gèrent dans l'espace web Sguardo."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Piano e pagamento sono nell'account web di Sguardo."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plan i płatności — w panelu webowym Sguardo."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plano e pagamento ficam na conta web do Sguardo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Тариф и оплата — в веб-кабинете Sguardo."
-          }
-        }
-      }
-    },
     "Текст вернули" : {
       "localizations" : {
         "de" : {
@@ -28057,110 +28265,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Уведомления о напоминаниях"
-          }
-        }
-      }
-    },
-    "Уведомления о новых сообщениях" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mitteilungen zu neuen Nachrichten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New message notifications"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notificaciones de mensajes nuevos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notifications de nouveaux messages"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notifiche dei nuovi messaggi"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Powiadomienia o nowych wiadomościach"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notificações de novas mensagens"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Уведомления о новых сообщениях"
-          }
-        }
-      }
-    },
-    "Уведомления о новых сообщениях появятся в ближайшем обновлении. Пока новые сообщения приходят, когда приложение открыто." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mitteilungen zu neuen Nachrichten kommen mit dem nächsten Update. Bis dahin erscheinen neue Nachrichten, wenn die App geöffnet ist."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New message notifications are coming in the next update. For now, new messages arrive while the app is open."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Las notificaciones de mensajes nuevos llegarán en la próxima actualización. Por ahora, los mensajes llegan cuando la app está abierta."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les notifications de nouveaux messages arrivent dans la prochaine mise à jour. Pour l'instant, les messages arrivent quand l'app est ouverte."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le notifiche dei nuovi messaggi arriveranno con il prossimo aggiornamento. Per ora i messaggi arrivano quando l'app è aperta."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Powiadomienia o nowych wiadomościach pojawią się w najbliższej aktualizacji. Na razie nowe wiadomości przychodzą, gdy aplikacja jest otwarta."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "As notificações de novas mensagens chegam na próxima atualização. Por enquanto, as mensagens chegam com o app aberto."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Уведомления о новых сообщениях появятся в ближайшем обновлении. Пока новые сообщения приходят, когда приложение открыто."
           }
         }
       }
@@ -31093,6 +31197,58 @@
         }
       }
     },
+    "Эта функция пока недоступна для вашего аккаунта" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Funktion ist für Ihr Konto noch nicht verfügbar"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This feature isn't available for your account yet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta función aún no está disponible para tu cuenta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette fonction n'est pas encore disponible pour votre compte"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa funzione non è ancora disponibile per il tuo account"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta funkcja nie jest jeszcze dostępna dla Twojego konta"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este recurso ainda não está disponível para sua conta"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эта функция пока недоступна для вашего аккаунта"
+          }
+        }
+      }
+    },
     "Эти файлы хранятся в Telegram, переслать их нельзя" : {
       "localizations" : {
         "de" : {
@@ -31297,58 +31453,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "без перевода"
-          }
-        }
-      }
-    },
-    "в ближайшем обновлении" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "im nächsten Update"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "in the next update"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "en la próxima actualización"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "dans la prochaine mise à jour"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "nel prossimo aggiornamento"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "w najbliższej aktualizacji"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "na próxima atualização"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "в ближайшем обновлении"
           }
         }
       }
@@ -33169,58 +33273,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "нет WhatsApp"
-          }
-        }
-      }
-    },
-    "нужна оплата" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zahlung nötig"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "payment required"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pago necesario"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "paiement requis"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pagamento richiesto"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "wymagana płatność"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pagamento necessário"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "нужна оплата"
           }
         }
       }
@@ -35421,6 +35473,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "сообщений"
+          }
+        }
+      }
+    },
+    "сообщения обрабатывает сервис Groq" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nachrichten werden von Groq verarbeitet"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "messages are processed by Groq"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "los mensajes los procesa Groq"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "les messages sont traités par Groq"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "i messaggi sono elaborati da Groq"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "wiadomości przetwarza usługa Groq"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "as mensagens são processadas pelo Groq"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "сообщения обрабатывает сервис Groq"
           }
         }
       }

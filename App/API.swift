@@ -125,10 +125,11 @@ enum API {
     }
 
     static func errorText(_ data: Data, status: Int) -> String {
+        // 402: текст сервера не показываем (в нём бывают слова про тариф и оплату на сайте — App Review 3.1.1)
+        if status == 402 { return String(localized: "Эта функция пока недоступна для вашего аккаунта") }
         if let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let e = obj["error"] as? String, !e.isEmpty { return e }
         switch status {
         case 401: return String(localized: "Нужно войти заново")
-        case 402: return String(localized: "Кабинет не оплачен — продли тариф в веб-версии")
         case 403: return String(localized: "Нет доступа")
         case 404: return String(localized: "Не найдено")
         case 429: return String(localized: "Слишком много попыток, подожди немного")

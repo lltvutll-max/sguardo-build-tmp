@@ -414,6 +414,13 @@ struct AudioBubble: View {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { tr.expanded = false }
             return
         }
+        if transcript == nil && !store.aiConsent {
+            // согласие на ИИ: после «Разрешить» расшифровка запустится сама, после «Не сейчас» кнопка спросит снова
+            store.askAI(then: {
+                Task { await toggleTranscript() }
+            })
+            return
+        }
         if transcript == nil {
             tr.loading = true
             let t = await store.transcribe(message.id)
@@ -742,6 +749,13 @@ struct RoundNoteBubble: View {
     private func toggleTranscript() async {
         if tr.expanded {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { tr.expanded = false }
+            return
+        }
+        if transcript == nil && !store.aiConsent {
+            // согласие на ИИ: после «Разрешить» расшифровка запустится сама, после «Не сейчас» кнопка спросит снова
+            store.askAI(then: {
+                Task { await toggleTranscript() }
+            })
             return
         }
         if transcript == nil {

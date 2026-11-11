@@ -131,7 +131,6 @@ jobs:
           shoot 07-summary -fixture -screen summary
           shoot 08-profile -fixture -screen profile
           shoot 09-folders -fixture -screen folders
-          shoot 10-outreach -fixture -screen outreach
           shoot 11-partners -fixture -screen partners
           shoot 12-lake -fixture -wall lake
           shoot 13-night -fixture -wall night -screen today
@@ -171,11 +170,6 @@ jobs:
           shoot 54-chat-failed -fixture -screen chat-failed
           shoot 55-chat-wave -fixture -screen chat-tg -scrollto m0_2
           shoot 56-chat-forward -fixture -screen chat-forward
-          # рассылки: список (оба источника), настройки, подтверждение очистки, плашка WhatsApp (снимки 60–63)
-          shoot 60-outreach-list -fixture -screen outreach-all
-          shoot 61-outreach-settings -fixture -screen outreach-settings
-          shoot 62-outreach-clear -fixture -screen outreach-clear
-          shoot 63-outreach-wa -fixture -screen outreach-wa
           # языки интерфейса (снимки 64–65): список чатов на английском, профиль на немецком
           shoot 64-chats-en -fixture -AppleLanguages "(en)" -AppleLocale en_US
           shoot 65-profile-de -fixture -screen profile -AppleLanguages "(de)" -AppleLocale de_DE
@@ -191,7 +185,8 @@ jobs:
           shoot 04-chat-ru -fixture -screen chat "${RU[@]}"
           shoot 27-chat-transcript-ru -fixture -screen chat-tg -transcript "${RU[@]}"
           shoot 09-folders-ru -fixture -screen folders "${RU[@]}"
-          shoot 10-outreach-ru -fixture -screen outreach "${RU[@]}"
+          shoot 06-today-ru -fixture -screen today "${RU[@]}"
+          shoot 05-client-ru -fixture -screen client "${RU[@]}"
           # белый/пустой экран сжимается в крошечный PNG — такие снимки помечаем
           for f in shots/*.png; do
             SZ=$(stat -f%z "$f")

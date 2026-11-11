@@ -213,6 +213,7 @@ struct ChatView: View {
         .task(id: lastIncomingId) {
             // при открытии и при каждом новом входящем: история (не чаще раза в минуту) и перевод нового
             await store.loadHistory(convId)
+            askAIForChatIfNeeded()
             await store.translateIncoming(convId)
         }
         .sheet(item: $sheet) { s in
@@ -221,7 +222,7 @@ struct ChatView: View {
                 case .folder: FolderSheet(contactId: contact.id)
                 case .remind: ReminderSheet(contactId: contact.id)
                 case .templates: TemplatesSheet { text in draft = text; inputFocused = true }
-                case .translate: TranslateSheet(lang: foreignLang(contact) ?? (contact.lang ?? ""))
+                case .translate: TranslateSheet(lang: foreignLang(contact) ?? (contact.lang ?? ""), convId: convId)
                 case .attach:
                     AttachSheet(canNote: conv.network == "telegram",
                                 onPhoto: { sheet = nil; DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { showPhotos = true } },
@@ -507,10 +508,23 @@ struct ChatView: View {
         }
     }
 
+    /// Первый вход в иностранный чат без согласия на ИИ: спрашиваем один раз за запуск.
+    private func askAIForChatIfNeeded() {
+        guard !store.aiConsent, !store.aiAskedAuto, store.translateOn else { return }
+        guard let conv = store.conversation(convId), let c = store.contact(conv.contactId), foreignLang(c) != nil else { return }
+        store.aiAskedAuto = true
+        let id: String = convId
+        store.askAI(then: {
+            Task { await store.translateIncoming(id) }
+        })
+    }
+
     /// Плашка под шапкой: идёт перевод входящих / перевод не удался — с «Повторить».
     @ViewBuilder private func translateStatus(_ contact: Contact) -> some View {
         if store.translateOn, foreignLang(contact) != nil {
-            if store.translating.contains(convId) {
+            if !store.aiConsent {
+                aiOffPill
+            } else if store.translating.contains(convId) {
                 HStack(spacing: 8) {
                     ProgressView().tint(.white).controlSize(.small)
                     Text("Переводим сообщения…").font(Typo.body(13, .medium)).foregroundStyle(.white)
@@ -525,6 +539,33 @@ struct ChatView: View {
                 translateErrorPill(err)
             }
         }
+    }
+
+    /// Перевод выключен (нет согласия на ИИ): тап — снова спросить.
+    private var aiOffPill: some View {
+        let id: String = convId
+        return Button {
+            haptic()
+            store.askAI(then: {
+                Task { await store.translateIncoming(id) }
+            })
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "globe").font(.system(size: 13)).foregroundStyle(.white)
+                Text("Перевод через ИИ выключен").font(Typo.body(13)).foregroundStyle(.white).lineLimit(2)
+                Text("Включить").font(Typo.body(13, .semibold)).foregroundStyle(Pal.acc)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .frame(minHeight: 44)
+            .contentShape(Capsule())
+            .glass(.dark, in: Capsule(), interactive: true)
+        }
+        .buttonStyle(PressStyle())
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .transition(.opacity.combined(with: .move(edge: .top)))
+        .accessibilityLabel(Text("Перевод через ИИ выключен. Включить"))
     }
 
     private func translateErrorPill(_ err: String) -> some View {
@@ -990,13 +1031,14 @@ struct ChatView: View {
 
     /// Значок языка в шапке: «🌐 EN». Тап — лист с объяснением и переключателем (перехватывает тап у карточки клиента).
     private func langBadge(_ lang: String) -> some View {
-        HStack(spacing: 3) {
+        let on: Bool = store.translateOut && store.aiConsent
+        return HStack(spacing: 3) {
             Image(systemName: "globe").font(.system(size: 9, weight: .semibold))
             Text(String(lang.prefix(2)).uppercased()).font(Typo.body(10, .semibold))
         }
-        .foregroundStyle(store.translateOut ? Pal.ink : .white)
+        .foregroundStyle(on ? Pal.ink : .white)
         .padding(.horizontal, 6).frame(height: 16)
-        .background(Capsule().fill(store.translateOut ? Color.white.opacity(0.85) : Color.white.opacity(0.18)))
+        .background(Capsule().fill(on ? Color.white.opacity(0.85) : Color.white.opacity(0.18)))
         .contentShape(Rectangle().inset(by: -8))
         .highPriorityGesture(TapGesture().onEnded { haptic(); sheet = .translate })
         .accessibilityAddTraits(.isButton)
@@ -1006,17 +1048,22 @@ struct ChatView: View {
     /// Компактный переключатель над полем ввода (только пока поле в фокусе): «🌐 RU → EN» и тумблер.
     private func translateChip(_ lang: String) -> some View {
         let code: String = String(lang.prefix(2)).uppercased()
+        let on: Bool = store.translateOut && store.aiConsent
         return HStack {
             Button {
                 haptic()
-                withAnimation(.spring(response: 0.3)) { store.translateOut.toggle() }
+                if store.aiConsent {
+                    withAnimation(.spring(response: 0.3)) { store.translateOut.toggle() }
+                } else {
+                    store.askAI(then: { store.translateOut = true })
+                }
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "globe").font(.system(size: 11, weight: .semibold))
-                    Text(store.translateOut ? "RU → \(code)" : String(localized: "без перевода")).font(Typo.body(12, .medium)).lineLimit(1)
-                    ZStack(alignment: store.translateOut ? .trailing : .leading) {
-                        Capsule().fill(store.translateOut ? Color.white.opacity(0.85) : Color.white.opacity(0.2))
-                        Circle().fill(store.translateOut ? Color.black.opacity(0.8) : Color.white).frame(width: 11, height: 11).padding(2)
+                    Text(on ? "RU → \(code)" : String(localized: "без перевода")).font(Typo.body(12, .medium)).lineLimit(1)
+                    ZStack(alignment: on ? .trailing : .leading) {
+                        Capsule().fill(on ? Color.white.opacity(0.85) : Color.white.opacity(0.2))
+                        Circle().fill(on ? Color.black.opacity(0.8) : Color.white).frame(width: 11, height: 11).padding(2)
                     }
                     .frame(width: 26, height: 15)
                 }
@@ -1025,7 +1072,7 @@ struct ChatView: View {
                 .glassCapsule(.dark)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(store.translateOut ? String(localized: "перевод при отправке включён") : String(localized: "перевод при отправке выключен"))
+            .accessibilityLabel(on ? String(localized: "перевод при отправке включён") : String(localized: "перевод при отправке выключен"))
             Spacer(minLength: 0)
         }
     }
@@ -2107,17 +2154,41 @@ struct ChatTranslateHint: View {
 struct TranslateSheet: View {
     @Environment(Store.self) private var store
     let lang: String
+    /// чат, из которого открыт лист: после согласия сразу переводим входящие
+    var convId: String? = nil
+    /// алерт согласия на ИИ — свой: поверх листа алерт RootView не показывается
+    @State private var askAI = false
+
+    private var outOn: Bool { store.translateOut && store.aiConsent }
+
+    private func setOut(_ v: Bool) {
+        if v && !store.aiConsent {
+            askAI = true
+            return
+        }
+        withAnimation(.spring(response: 0.3)) { store.translateOut = v }
+    }
 
     var body: some View {
         SheetBox(title: String(localized: "Перевод переписки"), subtitle: String(localized: "Клиент пишет на \(LangName.prep(lang))")) {
             Text("Входящие переводим на русский автоматически — перевод под сообщением. Вы пишете по-русски, а клиенту уходит на \(LangName.acc(lang)).")
                 .font(Typo.body(14)).foregroundStyle(Pal.fg2).lineSpacing(3)
                 .padding(.horizontal, 8).padding(.bottom, 6)
-            SheetOption(icon: "globe", title: String(localized: "Переводить мои ответы"), subtitle: store.translateOut ? String(localized: "уйдёт на \(LangName.acc(lang))") : String(localized: "уйдёт как написано"), action: {
-                withAnimation(.spring(response: 0.3)) { store.translateOut.toggle() }
+            SheetOption(icon: "globe", title: String(localized: "Переводить мои ответы"), subtitle: outOn ? String(localized: "уйдёт на \(LangName.acc(lang))") : String(localized: "уйдёт как написано"), action: {
+                setOut(!outOn)
             }) {
-                GlassSwitch(isOn: Binding(get: { store.translateOut }, set: { store.translateOut = $0 }))
+                GlassSwitch(isOn: Binding(get: { outOn }, set: { (v: Bool) in setOut(v) }))
             }
+        }
+        .alert(Text("Перевод и расшифровка через ИИ"), isPresented: $askAI) {
+            Button("Разрешить") {
+                store.aiConsentSaved = true
+                store.translateOut = true
+                if let id = convId { Task { await store.translateIncoming(id) } }
+            }
+            Button("Не сейчас", role: .cancel) {}
+        } message: {
+            Text("Для перевода и расшифровки текст и звук сообщений отправляются в сторонний ИИ-сервис (Groq). Разрешить?")
         }
     }
 }

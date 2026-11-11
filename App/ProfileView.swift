@@ -98,7 +98,7 @@ struct ProfileView: View {
                     }
                 }
                 .glassRect(24)
-                Text("Новый аккаунт подключается в веб-версии: там QR-код, его сканируют этим телефоном.")
+                Text("Новые аккаунты подключаются в веб-версии Sguardo.")
                     .font(Typo.body(13)).foregroundStyle(Pal.fg3).lineSpacing(3).padding(.horizontal, 16).padding(.top, 8)
 
                 Cap(String(localized: "Кабинет"))
@@ -112,8 +112,6 @@ struct ProfileView: View {
                     navRow(first: false, icon: "folder", color: Pal.sky, title: String(localized: "Папки и метки"), value: foldersSummary) { store.open(.folders) }
                 }
                 .glassRect(24)
-                Text("Тариф и оплата — в веб-кабинете Sguardo.")
-                    .font(Typo.body(13)).foregroundStyle(Pal.fg3).padding(.horizontal, 16).padding(.top, 8)
 
                 Cap(String(localized: "Приложение"))
                 VStack(spacing: 0) {
@@ -128,25 +126,7 @@ struct ProfileView: View {
                             .accessibilityLabel(String(localized: "Уведомления о напоминаниях"))
                             .accessibilityValue(store.pushOn ? Text("включены") : Text("выключены"))
                     }
-                    // Пуши о новых сообщениях ещё не готовы (нужен ключ APNs) — честно пишем, что будут.
-                    Button {
-                        store.show(String(localized: "Уведомления о новых сообщениях появятся в ближайшем обновлении. Пока новые сообщения приходят, когда приложение открыто."))
-                    } label: {
-                        GroupRow {
-                            RowIcon(system: "bell.badge", color: Pal.fg.opacity(0.35))
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text("Уведомления о новых сообщениях").foregroundStyle(Pal.fg2).multilineTextAlignment(.leading)
-                                Text("в ближайшем обновлении").font(Typo.body(13)).foregroundStyle(Pal.fg3)
-                            }
-                            Spacer(minLength: 4)
-                            Text("Скоро").font(Typo.body(13, .semibold)).foregroundStyle(Pal.fg2)
-                                .padding(.horizontal, 10).padding(.vertical, 4)
-                                .background(Capsule().fill(Pal.fg.opacity(0.1)))
-                        }
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(RowPressStyle())
-                    .accessibilityIdentifier("profile-push-soon")
+                    aiRow
                     GroupRow {
                         RowIcon(system: "moon", color: Pal.lav)
                         Text("Тихие часы 23:00–08:00").foregroundStyle(Pal.fg)
@@ -261,11 +241,29 @@ struct ProfileView: View {
         }
     }
 
-    /// «Рассылки» видит любой владелец кабинета (сервер: modules.outreach = owner); оплату проверяет API (402 → экран «нужна оплата»).
-    private var canOutreach: Bool { modules?.outreach ?? (store.user?.isOwner == true || store.user?.features?.outreach == true) }
+    /// «Рассылки» видит любой владелец кабинета (сервер: modules.outreach = owner); в iOS 1.0 скрыты флагом AppFeatures.outreach.
+    private var canOutreach: Bool {
+        guard AppFeatures.outreach else { return false }
+        return modules?.outreach ?? (store.user?.isOwner == true || store.user?.features?.outreach == true)
+    }
+
+    /// Согласие на перевод и расшифровку через сторонний ИИ: включить — через алерт, выключить — сразу.
+    private var aiRow: some View {
+        GroupRow {
+            RowIcon(system: "globe", color: Pal.sky)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Перевод и расшифровка через ИИ").foregroundStyle(Pal.fg)
+                Text("сообщения обрабатывает сервис Groq").font(Typo.body(13)).foregroundStyle(Pal.fg3)
+            }
+            Spacer()
+            GlassSwitch(isOn: Binding(get: { store.aiConsent }, set: { (v: Bool) in store.setAIConsent(v) }))
+                .accessibilityLabel(String(localized: "Перевод и расшифровка через ИИ"))
+                .accessibilityValue(store.aiConsent ? Text("включены") : Text("выключены"))
+        }
+    }
 
     private var outreachValue: String {
-        if let d = store.outreachDenied { return d.needPay ? String(localized: "нужна оплата") : "" }
+        if store.outreachDenied != nil { return "" }
         guard let o = store.outreach else { return "" }
         let n: Int = o.auto?.left ?? 0
         return String(localized: "\(n) в очереди")

@@ -17,6 +17,12 @@ enum Route: Hashable {
     case partnerLead(Int, Int)
 }
 
+/// Функции, выключенные в этой версии приложения. Вернуть — поменять false на true.
+enum AppFeatures {
+    /// «Рассылки» (OutreachView и все входы в неё) — скрыты в iOS 1.0
+    static let outreach: Bool = false
+}
+
 /// Почему рассылка недоступна (ответ сервера 402/403).
 struct OutreachDenied: Equatable {
     let needPay: Bool
@@ -76,6 +82,47 @@ final class Store {
         didSet { UserDefaults.standard.set(translateOut, forKey: "translateOut") }
     }
     var translateOn: Bool { state.workspace?.translate ?? true }
+
+    // Согласие на перевод и расшифровку сторонним ИИ (App Review 5.1.2(i)). Без него перевод и расшифровка не запрашиваются.
+    var aiConsentSaved: Bool = UserDefaults.standard.bool(forKey: "aiConsent") {
+        didSet { UserDefaults.standard.set(aiConsentSaved, forKey: "aiConsent") }
+    }
+    /// в режиме снимков CI (-fixture) согласие считается данным
+    var aiConsent: Bool { fixture || aiConsentSaved }
+    /// показать алерт согласия (RootView)
+    var aiAsk: Bool = false
+    /// в этом запуске уже спрашивали автоматически (при входе в иностранный чат)
+    @ObservationIgnored var aiAskedAuto: Bool = false
+    @ObservationIgnored private var aiAfter: (() -> Void)?
+
+    /// Нужна функция ИИ: согласие есть — сразу выполняем, нет — спрашиваем (после «Разрешить» выполним).
+    func askAI(then: (() -> Void)? = nil) {
+        if aiConsent {
+            then?()
+            return
+        }
+        aiAfter = then
+        aiAsk = true
+    }
+
+    func answerAI(_ allow: Bool) {
+        aiAsk = false
+        let after: (() -> Void)? = aiAfter
+        aiAfter = nil
+        if allow {
+            aiConsentSaved = true
+            after?()
+        }
+    }
+
+    /// Переключатель в профиле: включить — через алерт согласия, выключить — сразу.
+    func setAIConsent(_ on: Bool) {
+        if on {
+            askAI(then: nil)
+        } else {
+            aiConsentSaved = false
+        }
+    }
 
     // локальные настройки
     var wall: Wall = Wall(rawValue: UserDefaults.standard.string(forKey: "wall") ?? "") ?? .eye
@@ -476,7 +523,7 @@ final class Store {
             json["attachments"] = items
         }
         if let replyTo { json["replyTo"] = replyTo }
-        if translate && translateOut && translateOn && !text.isEmpty { json["translate"] = true }
+        if translate && translateOut && translateOn && aiConsent && !text.isEmpty { json["translate"] = true }
         do {
             let r = try await API.post(ActionResponse.self, "/api/messages/send/", json: json)
             apply(r.state)
@@ -494,7 +541,7 @@ final class Store {
     /// при сбое или таймауте — ещё 2 попытки, потом ошибка с «Повторить» (translateFailed).
     /// Работа идёт в отдельной задаче: уход с экрана чата перевод не обрывает.
     func translateIncoming(_ convId: String) async {
-        guard !fixture, !accountDeleted, translateOn else { return }
+        guard !fixture, !accountDeleted, translateOn, aiConsent else { return }
         if translating.contains(convId) { translateAgain.insert(convId); return }
         guard !untranslatedKeys(convId).isEmpty else { return }
         translating.insert(convId)
@@ -560,6 +607,7 @@ final class Store {
     /// Расшифровать голосовое или кружок. nil — ошибка (показана тостом).
     func transcribe(_ messageId: String) async -> Transcript? {
         if let t = transcripts[messageId] { return t }
+        if !aiConsent { return nil }
         if fixture {
             #if DEBUG
             let t = Transcript(text: Fixture.transcribeText, lang: Fixture.isEnglish ? "en" : "ru")

@@ -11,8 +11,8 @@ struct ChatsView: View {
     /// чат, для которого открыт лист «Ещё» (свайп влево)
     @State private var moreFor: String?
 
-    /// Все сети, которые знает приложение (NetInfo): фильтр показывает каждую.
-    static let nets: [String] = ["whatsapp", "telegram", "instagram", "threads", "tiktok"]
+    /// Сети в фильтре (чаты других сетей, если придут с сервера, видны во «Все»).
+    static let nets: [String] = ["whatsapp", "telegram", "instagram", "threads"]
 
     private func matches(_ c: Conversation, query: String) -> Bool {
         let contact: Contact? = store.contact(c.contactId)
