@@ -341,7 +341,8 @@ final class Store {
             try? FileManager.default.removeItem(at: f)
         }
         let d = UserDefaults.standard
-        for k in ["pinned", "hintOff", "labels", "lastEmail", "push", "quiet", "face"] { d.removeObject(forKey: k) }
+        for k in ["pinned", "hintOff", "labels", "lastEmail", "push", "quiet", "face", "aiConsent"] { d.removeObject(forKey: k) }
+        aiConsentSaved = false
         Prefs.shared.resetLocal()
         user = nil
         state = .empty
