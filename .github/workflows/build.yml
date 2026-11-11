@@ -95,7 +95,10 @@ jobs:
             local t0=$(date +%s)
             local launch_timeout=45
             if [ "$name" = 00-live-login ]; then launch_timeout=60; fi
-            if to "$launch_timeout" xcrun simctl launch --terminate-running-process "$UDID" "$BUNDLE_ID" "$@"; then
+            # язык по умолчанию — явно английский (витрина App Store en); сцены со своим -AppleLanguages его не получают
+            local lang_args=(-AppleLanguages "(en)" -AppleLocale en_US)
+            case " $* " in *" -AppleLanguages "*) lang_args=() ;; esac
+            if to "$launch_timeout" xcrun simctl launch --terminate-running-process "$UDID" "$BUNDLE_ID" "$@" "${lang_args[@]}"; then
               for i in $(seq 1 10); do
                 if to 5 xcrun simctl spawn "$UDID" launchctl list 2>/dev/null | grep -F "UIKitApplication:$BUNDLE_ID" >/dev/null; then
                   break
@@ -178,6 +181,17 @@ jobs:
           shoot 65-profile-de -fixture -screen profile -AppleLanguages "(de)" -AppleLocale de_DE
           # удаление аккаунта (снимок 66); поддержка/конфиденциальность видны на 26-profile-bottom
           shoot 66-delete-owner -fixture -screen profile-delete
+          # витрина App Store: перевод без листа и клавиатуры (снимок 67)
+          shoot 67-chat-tr-clean -fixture -screen chat-tr-clean
+          # витрина App Store на русском: те же сцены, суффикс -ru
+          RU=(-AppleLanguages "(ru)" -AppleLocale ru_RU)
+          shoot 03-chats-ru -fixture "${RU[@]}"
+          shoot 25-chat-tr-sheet-ru -fixture -screen chat-tr-sheet "${RU[@]}"
+          shoot 67-chat-tr-clean-ru -fixture -screen chat-tr-clean "${RU[@]}"
+          shoot 04-chat-ru -fixture -screen chat "${RU[@]}"
+          shoot 27-chat-transcript-ru -fixture -screen chat-tg -transcript "${RU[@]}"
+          shoot 09-folders-ru -fixture -screen folders "${RU[@]}"
+          shoot 10-outreach-ru -fixture -screen outreach "${RU[@]}"
           # белый/пустой экран сжимается в крошечный PNG — такие снимки помечаем
           for f in shots/*.png; do
             SZ=$(stat -f%z "$f")

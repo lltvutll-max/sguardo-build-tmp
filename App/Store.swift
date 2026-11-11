@@ -561,7 +561,11 @@ final class Store {
     func transcribe(_ messageId: String) async -> Transcript? {
         if let t = transcripts[messageId] { return t }
         if fixture {
-            let t = Transcript(text: "Добрый день! Хотела уточнить: можно ли перенести занятие на четверг, на семь вечера? И пришлите, пожалуйста, ссылку на оплату.", lang: "ru") // i18n: no
+            #if DEBUG
+            let t = Transcript(text: Fixture.transcribeText, lang: Fixture.isEnglish ? "en" : "ru")
+            #else
+            let t = Transcript(text: "", lang: nil)
+            #endif
             transcripts[messageId] = t
             return t
         }
