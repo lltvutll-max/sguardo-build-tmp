@@ -39,7 +39,8 @@ struct OutreachView: View {
         }
         .screenBackground(store.wall)
         .task {
-            await store.loadOutreach()
+            // копия с диска уже на экране; заново грузим, только если список старше минуты
+            await store.loadOutreach(maxAge: 60)
             await applyFixture()
         }
         .sheet(item: $selected) { (t: OutreachTarget) in OutreachTargetSheet(target: t) }
@@ -74,7 +75,7 @@ struct OutreachView: View {
             EmptyState(icon: "exclamationmark.triangle", title: String(localized: "Рассылка не загрузилась"), text: err,
                        actionTitle: String(localized: "Повторить"), action: { Task { await store.loadOutreach() } })
         } else {
-            ProgressView().tint(Pal.fg).frame(maxWidth: .infinity).padding(.top, 40)
+            CardListSkeleton().padding(.top, 18)
         }
     }
 

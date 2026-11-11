@@ -16,12 +16,14 @@ struct SguardoApp: App {
                     switch phase {
                     case .active:
                         if store.phase == .ready && !store.accountDeleted {
-                            Task { await store.loadState() }
+                            // запрос условный (ETag): без изменений сервер отвечает 304 и экран не перерисовывается
+                            Task { await store.refreshState(maxAge: 5) }
                             store.startLive()
                         }
                     case .background:
                         store.stopLive()
                         store.commitPendingRead()
+                        store.saveCacheNow()
                         // в фоне блокируем всегда, даже посреди проверки Face ID
                         if store.authenticating { store.wentBackground = true }
                         if store.faceOn && store.phase == .ready { store.lock() }

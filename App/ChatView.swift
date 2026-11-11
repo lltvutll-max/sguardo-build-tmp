@@ -99,6 +99,8 @@ struct ChatView: View {
     @State private var newBelow = 0
     /// первое непрочитанное при открытии чата — перед ним разделитель «Непрочитанные сообщения»
     @State private var unreadAnchor: String?
+    /// когда открыли чат (подгрузка истории в первые секунды не должна сбивать позицию у непрочитанных)
+    @State private var openedAt = Date()
     @State private var scrollH: CGFloat = 0
     /// мультивыбор сообщений
     @State private var selecting = false
@@ -151,6 +153,7 @@ struct ChatView: View {
                         selectionHeader
                     } else {
                         header(conv, contact)
+                        translateStatus(contact)
                     }
                     Spacer()
                     Group {
@@ -198,7 +201,8 @@ struct ChatView: View {
             if recorder.isActive { recorder.cancel() }
             if notePhase != .idle { closeNote() }
         }
-        .task {
+        .task(id: lastIncomingId) {
+            // при открытии и при каждом новом входящем: история (не чаще раза в минуту) и перевод нового
             await store.loadHistory(convId)
             await store.translateIncoming(convId)
         }
@@ -321,7 +325,8 @@ struct ChatView: View {
                 .padding(.horizontal, 12)
                 .padding(.top, 136)
                 .padding(.bottom, bottomPad)
-                .animation(.spring(response: 0.35, dampingFraction: 0.85), value: msgs.count)
+                // анимируем только новое внизу: подгрузка истории сверху появляется сразу, без «въезда» снизу
+                .animation(.spring(response: 0.35, dampingFraction: 0.85), value: msgs.last?.id)
             }
             .coordinateSpace(.named("chatScroll"))
             .background(GeometryReader { g in Color.clear.preference(key: ChatScrollHeightKey.self, value: g.size.height) })
@@ -348,6 +353,7 @@ struct ChatView: View {
                 if new > old && atBottom { withAnimation { proxy.scrollTo("bottom", anchor: .bottom) } }
             }
             .onChange(of: msgs.last?.id) { old, new in lastChanged(old, new, proxy) }
+            .onChange(of: historyCount) { old, new in historyChanged(old, new, proxy) }
             .onChange(of: pending.count) { old, new in
                 if new > old { withAnimation { proxy.scrollTo("bottom", anchor: .bottom) } }
             }
@@ -466,6 +472,69 @@ struct ChatView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) { proxy.scrollTo(id, anchor: UnitPoint(x: 0.5, y: 0.2)) }
         }
         #endif
+    }
+
+    /// Сколько сообщений в полной истории (-1 — ещё не загружена).
+    private var historyCount: Int { store.fullHistory[convId]?.count ?? -1 }
+
+    /// Последнее входящее: новое — повод догрузить историю и перевести его.
+    private var lastIncomingId: String {
+        let msgs: [Message] = store.conversation(convId)?.messages ?? []
+        return msgs.last(where: { (m: Message) -> Bool in !m.isOut })?.id ?? ""
+    }
+
+    /// Подгрузилась история сверху: внизу — остаёмся внизу; только открыли на непрочитанных — возвращаемся к разделителю.
+    /// Если человек уже листает сам — не трогаем.
+    private func historyChanged(_ old: Int, _ new: Int, _ proxy: ScrollViewProxy) {
+        guard new > old else { return }
+        if atBottom {
+            proxy.scrollTo("bottom", anchor: .bottom)
+        } else if unreadAnchor != nil, Date().timeIntervalSince(openedAt) < 3 {
+            proxy.scrollTo("unread-divider", anchor: UnitPoint(x: 0.5, y: 0.2))
+        }
+    }
+
+    /// Плашка под шапкой: идёт перевод входящих / перевод не удался — с «Повторить».
+    @ViewBuilder private func translateStatus(_ contact: Contact) -> some View {
+        if store.translateOn, foreignLang(contact) != nil {
+            if store.translating.contains(convId) {
+                HStack(spacing: 8) {
+                    ProgressView().tint(.white).controlSize(.small)
+                    Text("Переводим сообщения…").font(Typo.body(13, .medium)).foregroundStyle(.white)
+                }
+                .padding(.horizontal, 14)
+                .frame(minHeight: 36)
+                .glass(.dark, in: Capsule())
+                .padding(.top, 8)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+                .accessibilityElement(children: .combine)
+            } else if let err = store.translateFailed[convId] {
+                translateErrorPill(err)
+            }
+        }
+    }
+
+    private func translateErrorPill(_ err: String) -> some View {
+        Button {
+            haptic()
+            Task { await store.translateIncoming(convId) }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 13)).foregroundStyle(Pal.rose)
+                Text("Перевод не загрузился: \(err)").font(Typo.body(13)).foregroundStyle(.white).lineLimit(2)
+                Text("Повторить").font(Typo.body(13, .semibold)).foregroundStyle(Pal.acc)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .frame(minHeight: 44)
+            .contentShape(Capsule())
+            .glass(.dark, in: Capsule(), interactive: true)
+        }
+        .buttonStyle(PressStyle())
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .transition(.opacity.combined(with: .move(edge: .top)))
+        .accessibilityLabel(Text("Перевод не загрузился. Повторить"))
     }
 
     /// Пришло новое сообщение: внизу — докручиваем; читаем историю — не прыгаем, только счётчик на кнопке «вниз».

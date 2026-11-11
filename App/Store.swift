@@ -102,6 +102,26 @@ final class Store {
     @ObservationIgnored private var toastTask: Task<Void, Never>?
     @ObservationIgnored private var reloadPending = false
 
+    // кэш и свежесть данных
+    /// данные кабинета уже есть (с диска или с сервера) — до этого список чатов показывает заглушки
+    var stateLoaded = false
+    /// перевод входящих идёт / не удался (id переписки → текст ошибки)
+    var translating: Set<String> = []
+    var translateFailed: [String: String] = [:]
+    @ObservationIgnored private var translateTried: Set<String> = []
+    @ObservationIgnored private var translateAgain: Set<String> = []
+    @ObservationIgnored private var stateTask: Task<Void, Never>?
+    @ObservationIgnored private var lastStateAt: Date?
+    @ObservationIgnored private var saveTask: Task<Void, Never>?
+    /// писать кэш на диск можно (вошли в аккаунт, не фикстуры)
+    @ObservationIgnored private var cacheOn = false
+    /// номер сессии: ответы запросов, начатых до выхода из аккаунта, отбрасываем
+    @ObservationIgnored private var epoch = 0
+    @ObservationIgnored private var historyAt: [String: Date] = [:]
+    @ObservationIgnored private var historyLoading: Set<String> = []
+    @ObservationIgnored private var outreachAt: Date?
+    @ObservationIgnored private var outreachLoad: Task<Void, Never>?
+
     // MARK: - удобные выборки
 
     var folders: [Folder] { state.folders }
@@ -144,24 +164,32 @@ final class Store {
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("-fixture") {
             fixture = true
+            stateLoaded = true
             Fixture.apply(self)
             return
         }
         #endif
         if faceOn { lock() }
+        // есть сессия и копия на диске — сразу показываем кабинет, сервер проверяем в фоне
+        let restored: Bool = restoreFromDisk()
         do {
             let me = try await API.get(MeResponse.self, "/api/auth/me/")
+            if let old = user, old.id != me.user.id { dropCachedData() }
             user = me.user
-            await loadState(force: true)
-            phase = .ready
+            cacheOn = true
+            // без кэша — сразу в кабинет со скелетонами вместо спиннера на весь экран
+            if phase != .ready { phase = .ready }
             startLive()
             Task { await loadAccount() }
+            await loadState(force: true)
         } catch let e as APIError where e.status == 401 {
+            if restored { dropCachedData() }
             phase = .login
         } catch {
-            // нет сети: если cookie есть — пускаем в кабинет и пробуем позже
-            if !API.cookies.isEmpty {
-                phase = .ready
+            // нет сети: если cookie есть — пускаем в кабинет (с копией, если она есть) и пробуем позже
+            if restored || !API.cookies.isEmpty {
+                cacheOn = true
+                if phase != .ready { phase = .ready }
                 lastError = friendly(error)
                 startLive()
             } else {
@@ -170,16 +198,45 @@ final class Store {
         }
     }
 
+    /// Поднять последнюю копию кабинета с диска. true — показали.
+    private func restoreFromDisk() -> Bool {
+        guard !API.cookies.isEmpty, let snap = DiskCache.loadSnapshot() else { return false }
+        user = snap.user
+        state = snap.state
+        fullHistory = snap.history
+        outreach = DiskCache.loadOutreach()
+        stateLoaded = true
+        phase = .ready
+        return true
+    }
+
+    /// Убрать данные прошлой копии (другой аккаунт или сессия истекла).
+    private func dropCachedData() {
+        saveTask?.cancel(); saveTask = nil
+        cacheOn = false
+        DiskCache.clear()
+        user = nil
+        state = .empty
+        fullHistory = [:]
+        outreach = nil
+        stateLoaded = false
+        lastStateAt = nil
+        historyAt = [:]
+        outreachAt = nil
+        etag = nil
+    }
+
     func didLogin() async {
         do {
             let me = try await API.get(MeResponse.self, "/api/auth/me/")
             user = me.user
         } catch {}
         etag = nil
-        await loadState(force: true)
+        cacheOn = true
         withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) { phase = .ready }
         startLive()
         Task { await loadAccount() }
+        await loadState(force: true)
     }
 
     func logout() async {
@@ -213,6 +270,19 @@ final class Store {
 
     /// Полный сброс: следующий аккаунт на этом телефоне не увидит ничего от прошлого.
     func resetAll() {
+        epoch += 1
+        saveTask?.cancel(); saveTask = nil
+        stateTask?.cancel(); stateTask = nil
+        outreachLoad?.cancel(); outreachLoad = nil
+        cacheOn = false
+        DiskCache.clear()
+        stateLoaded = false
+        lastStateAt = nil
+        historyAt = [:]; historyLoading = []
+        outreachAt = nil
+        translating = []; translateFailed = [:]; translateTried = []; translateAgain = []
+        transcripts = [:]
+        reloadPending = false
         API.clearCookies()
         URLCache.shared.removeAllCachedResponses()
         ImageLoader.shared.clear()
@@ -254,34 +324,65 @@ final class Store {
 
     // MARK: - данные
 
+    /// Загрузить /api/state. Одновременно идёт только один запрос: повторные вызовы ждут его,
+    /// а если за это время что-то изменилось (SSE, возврат в приложение) — после него один раз догружаем.
     func loadState(force: Bool = false) async {
         if fixture || accountDeleted { return }
-        if loading && !force { reloadPending = true; return }
+        if let running = stateTask {
+            reloadPending = true
+            await running.value
+            return
+        }
+        let t: Task<Void, Never> = Task { [weak self] in
+            guard let self else { return }
+            await self.fetchState(force: force)
+        }
+        stateTask = t
+        await t.value
+        stateTask = nil
+        if reloadPending {
+            reloadPending = false
+            await loadState()
+        }
+    }
+
+    /// Обновить, только если данные старше maxAge секунд (возврат в приложение, повторное открытие экрана).
+    func refreshState(maxAge: TimeInterval) async {
+        if let at = lastStateAt, Date().timeIntervalSince(at) < maxAge { return }
+        await loadState()
+    }
+
+    private func fetchState(force: Bool) async {
+        let started: Int = epoch
         loading = true
         defer { loading = false }
         do {
-            var headers: [String: String] = [:]
-            if !force, let etag { headers["If-None-Match"] = etag }
             var req = URLRequest(url: API.url("/api/state/"))
             req.setValue("application/json", forHTTPHeaderField: "Accept")
-            for (k, v) in headers { req.setValue(v, forHTTPHeaderField: k) }
+            if !force, let etag { req.setValue(etag, forHTTPHeaderField: "If-None-Match") }
             let (data, resp) = try await API.session.data(for: req)
+            // за время запроса вышли из аккаунта — ответ уже чужой
+            guard started == epoch, !accountDeleted else { return }
             guard let http = resp as? HTTPURLResponse else { return }
-            if http.statusCode == 304 { lastError = nil; return }
+            if http.statusCode == 304 { markStateFresh(); return }
             if http.statusCode == 401 { await logout(); return }
             if http.statusCode >= 400 { throw APIError(status: http.statusCode, message: API.errorText(data, status: http.statusCode)) }
             let r = try API.decode(StateResponse.self, data)
             etag = http.value(forHTTPHeaderField: "Etag")
             apply(r.state)
-            if let u = r.user { user = u }
-            lastError = nil
+            if let u = r.user, u != user { user = u }
+            markStateFresh()
         } catch {
+            // ошибка не стирает уже показанные данные: копия остаётся на экране, сверху — баннер/повтор
+            guard started == epoch else { return }
             lastError = friendly(error)
         }
-        if reloadPending {
-            reloadPending = false
-            Task { await loadState() }
-        }
+    }
+
+    private func markStateFresh() {
+        if lastError != nil { lastError = nil }
+        lastStateAt = Date()
+        if !stateLoaded { stateLoaded = true }
     }
 
     private func apply(_ s: AppState) {
@@ -290,8 +391,40 @@ final class Store {
         if !pendingRead.isEmpty {
             for i in s.conversations.indices where pendingRead.contains(s.conversations[i].id) { s.conversations[i].unread = 0 }
         }
+        if !stateLoaded { stateLoaded = true }
+        // тот же ответ — ничего не перерисовываем (фоновое обновление без мигания)
+        guard s != state else { return }
         withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) { state = s }
         scheduleReminderNotifications()
+        scheduleSave()
+    }
+
+    // MARK: - кэш на диске
+
+    /// Записать копию через секунду после последнего изменения (пачка обновлений — одна запись).
+    private func scheduleSave() {
+        guard cacheOn, !fixture else { return }
+        saveTask?.cancel()
+        saveTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            if Task.isCancelled { return }
+            self?.saveCacheNow()
+        }
+    }
+
+    /// Записать копию сейчас (например, при уходе приложения в фон).
+    func saveCacheNow() {
+        saveTask?.cancel(); saveTask = nil
+        guard cacheOn, !fixture, !accountDeleted, stateLoaded else { return }
+        let limit: Int = DiskCache.historyLimit
+        let history: [String: [Message]] = fullHistory.mapValues { (list: [Message]) -> [Message] in Array(list.suffix(limit)) }
+        let snap = CachedSnapshot(version: DiskCache.version, user: user, state: state, history: history, savedAt: Date())
+        DiskCache.save(snap, to: DiskCache.snapshotURL)
+    }
+
+    private func saveOutreachCache() {
+        guard cacheOn, !fixture, !accountDeleted, let list = outreach else { return }
+        DiskCache.save(list, to: DiskCache.outreachURL)
     }
 
     func loadAccount() async {
@@ -299,10 +432,21 @@ final class Store {
         account = try? await API.get(AccountInfo.self, "/api/account/")
     }
 
+    /// Полная история чата. Копия с диска показывается сразу; с сервера обновляем не чаще раза в 60 с на чат
+    /// и без параллельных дублей. Ошибка не стирает уже показанную историю.
     func loadHistory(_ convId: String) async {
-        guard !fixture, (conversation(convId)?.older ?? 0) > 0, fullHistory[convId] == nil else { return }
-        if let r = try? await API.get(HistoryResponse.self, "/api/history/", query: [URLQueryItem(name: "c", value: convId)]) {
+        guard !fixture, !accountDeleted, (conversation(convId)?.older ?? 0) > 0 else { return }
+        if let at = historyAt[convId], Date().timeIntervalSince(at) < 60 { return }
+        guard !historyLoading.contains(convId) else { return }
+        historyLoading.insert(convId)
+        defer { historyLoading.remove(convId) }
+        let started: Int = epoch
+        guard let r = try? await API.get(HistoryResponse.self, "/api/history/", query: [URLQueryItem(name: "c", value: convId)]) else { return }
+        guard started == epoch else { return }
+        historyAt[convId] = Date()
+        if fullHistory[convId] != r.messages {
             fullHistory[convId] = r.messages
+            scheduleSave()
         }
     }
 
@@ -345,12 +489,69 @@ final class Store {
     }
 
     /// Перевести входящие диалога на язык менеджера (POST /api/translate — сервер переводит только непереведённое, с кэшем).
+    /// Запрос уходит, только если есть входящие без перевода, которые ещё не отправляли (кэш: id сообщения + язык);
+    /// один запрос на чат за раз (пришло новое во время перевода — после него переводим ещё раз);
+    /// при сбое или таймауте — ещё 2 попытки, потом ошибка с «Повторить» (translateFailed).
+    /// Работа идёт в отдельной задаче: уход с экрана чата перевод не обрывает.
     func translateIncoming(_ convId: String) async {
-        guard !fixture, translateOn else { return }
-        if let r = try? await API.post(ActionResponse.self, "/api/translate/", json: ["conversationId": convId]) {
-            apply(r.state)
-            etag = nil
+        guard !fixture, !accountDeleted, translateOn else { return }
+        if translating.contains(convId) { translateAgain.insert(convId); return }
+        guard !untranslatedKeys(convId).isEmpty else { return }
+        translating.insert(convId)
+        translateFailed[convId] = nil
+        let t: Task<Void, Never> = Task { [weak self] in
+            guard let self else { return }
+            await self.translateLoop(convId)
         }
+        await t.value
+    }
+
+    private func translateLoop(_ convId: String) async {
+        let started: Int = epoch
+        var again = true
+        while again {
+            translateAgain.remove(convId)
+            await translateOnce(convId, started: started)
+            again = started == epoch && translateAgain.contains(convId) && translateFailed[convId] == nil
+        }
+        translateAgain.remove(convId)
+        if started == epoch { translating.remove(convId) }
+    }
+
+    private func translateOnce(_ convId: String, started: Int) async {
+        let todo: [String] = untranslatedKeys(convId)
+        guard !todo.isEmpty else { return }
+        var failure: Error?
+        for attempt in 0..<3 {
+            if attempt > 0 { try? await Task.sleep(nanoseconds: UInt64(attempt) * 1_500_000_000) }
+            guard started == epoch, !accountDeleted else { return }
+            do {
+                let r = try await API.post(ActionResponse.self, "/api/translate/", json: ["conversationId": convId], timeout: 60)
+                guard started == epoch else { return }
+                apply(r.state)
+                etag = nil
+                translateTried.formUnion(todo)
+                return
+            } catch {
+                failure = error
+                // 4xx (кроме таймаута и «слишком часто») повтор не исправит
+                if let e = error as? APIError, e.status >= 400, e.status < 500, e.status != 408, e.status != 429 { break }
+            }
+        }
+        guard started == epoch else { return }
+        if let failure { translateFailed[convId] = friendly(failure) }
+    }
+
+    /// Ключи «id сообщения|язык» входящих с текстом, у которых нет перевода и которые ещё не отправляли на перевод.
+    private func untranslatedKeys(_ convId: String) -> [String] {
+        let lang: String = user?.locale ?? "ru"
+        var out: [String] = []
+        for m in messages(convId) where !m.isOut && !m.body.isEmpty {
+            let done: Bool = !(m.translation?.text ?? "").isEmpty
+            let key: String = m.id + "|" + lang
+            if !done && !translateTried.contains(key) { out.append(key) }
+        }
+        return out
     }
 
     /// Расшифровки, полученные в этой сессии (сервер их тоже хранит и отдаёт в сообщениях).
@@ -623,13 +824,36 @@ final class Store {
     }
 
     /// quiet — фоновая подгрузка (из Профиля): ошибки не показываем тостом
-    func loadOutreach(quiet: Bool = false) async {
-        if fixture { return }
+    /// maxAge > 0 — не грузить заново, если список свежее стольких секунд (повторное открытие экрана).
+    /// Параллельные вызовы ждут уже идущий запрос; ошибка при уже показанном списке его не стирает.
+    func loadOutreach(quiet: Bool = false, maxAge: TimeInterval = 0) async {
+        if fixture || accountDeleted { return }
+        if maxAge > 0, outreach != nil, let at = outreachAt, Date().timeIntervalSince(at) < maxAge { return }
+        if let running = outreachLoad {
+            await running.value
+            return
+        }
+        let t: Task<Void, Never> = Task { [weak self] in
+            guard let self else { return }
+            await self.fetchOutreach(quiet: quiet)
+        }
+        outreachLoad = t
+        await t.value
+        outreachLoad = nil
+    }
+
+    private func fetchOutreach(quiet: Bool) async {
+        let started: Int = epoch
         do {
-            outreach = try await API.get(OutreachList.self, "/api/outreach/")
+            let list: OutreachList = try await API.get(OutreachList.self, "/api/outreach/")
+            guard started == epoch else { return }
+            outreach = list
+            outreachAt = Date()
             outreachDenied = nil
             outreachLoadError = nil
+            saveOutreachCache()
         } catch {
+            guard started == epoch else { return }
             if outreachDeny(error) { return }
             if outreach == nil { outreachLoadError = friendly(error) }
             if !quiet { show(friendly(error), ok: false) }
@@ -646,6 +870,8 @@ final class Store {
         do {
             let r = try await API.post(OutreachList.self, "/api/outreach/", json: body)
             outreach = r
+            outreachAt = Date()
+            saveOutreachCache()
             outreachDenied = nil
             if let ok { show(ok) }
             return r

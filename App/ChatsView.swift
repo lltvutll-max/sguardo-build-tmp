@@ -325,7 +325,9 @@ struct ChatsView: View {
     @ViewBuilder private var emptyView: some View {
         let query: String = q.trimmingCharacters(in: .whitespaces)
         if store.state.conversations.isEmpty {
-            if let e = store.lastError {
+            if !store.stateLoaded && store.lastError == nil {
+                ChatListSkeleton()
+            } else if let e = store.lastError {
                 EmptyState(icon: "wifi.exclamationmark", title: String(localized: "Не получилось загрузить чаты"), text: e,
                            actionTitle: String(localized: "Повторить"), action: { Task { await store.loadState(force: true) } })
             } else {

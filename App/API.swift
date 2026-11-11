@@ -72,9 +72,10 @@ enum API {
 
     @discardableResult
     static func send(_ method: String, _ path: String, json: [String: Any]? = nil, query: [URLQueryItem] = [],
-                     headers: [String: String] = [:]) async throws -> (Data, HTTPURLResponse) {
+                     headers: [String: String] = [:], timeout: TimeInterval? = nil) async throws -> (Data, HTTPURLResponse) {
         var req = URLRequest(url: url(path, query: query))
         req.httpMethod = method
+        if let timeout { req.timeoutInterval = timeout }
         req.setValue("application/json", forHTTPHeaderField: "Accept")
         req.setValue("ru", forHTTPHeaderField: "Accept-Language")
         for (k, v) in headers { req.setValue(v, forHTTPHeaderField: k) }
@@ -93,8 +94,8 @@ enum API {
         return try decode(type, data)
     }
 
-    static func post<T: Decodable>(_ type: T.Type, _ path: String, json: [String: Any]) async throws -> T {
-        let (data, _) = try await send("POST", path, json: json)
+    static func post<T: Decodable>(_ type: T.Type, _ path: String, json: [String: Any], timeout: TimeInterval? = nil) async throws -> T {
+        let (data, _) = try await send("POST", path, json: json, timeout: timeout)
         return try decode(type, data)
     }
 

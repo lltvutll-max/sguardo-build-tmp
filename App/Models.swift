@@ -186,6 +186,9 @@ struct AppState: Codable {
     }
 }
 
+/// Сравнение состояний: одинаковый ответ сервера не перерисовывает экраны (без мигания при фоновом обновлении).
+extension AppState: Equatable {}
+
 struct Features: Codable, Hashable {
     let outreach: Bool?
 }
